@@ -11,7 +11,7 @@ class TestTelemetryGenerator(unittest.TestCase):
     def test_valid_asset_returns(self):
         gen = TelemetryGenerator(100,10,2)
         for asset in gen.assets:
-            asset = gen.assets[0]
+            
             self.assertIsInstance(asset,Asset)
             self.assertEqual(asset.assetType,"public")
             self.assertEqual(asset.sequence,0)
