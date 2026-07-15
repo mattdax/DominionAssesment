@@ -1,0 +1,105 @@
+from .telemetryUtil import generatePositions, generateHeading, generateSpeed, updatePosition
+import datetime
+from dataclasses import dataclass, replace
+from typing import List
+import random
+from time import monotonic
+
+@dataclass
+class Asset:
+    droneId: str
+    type: str
+    longitude: float
+    latitude: float
+    sequence: int
+    heading: float
+    speed: float 
+    timestamp: str
+
+
+
+
+"""
+
+Generator inputs - 
+    Seed
+    Number of assets
+    Predetermined trajectories for polygon interaction
+    Update frequency
+    Pause Reset
+
+"""
+
+
+
+class TelemetryGenerator():
+   
+   # Initializer for Telemetry Generator
+    # Input: see, assetCount, updateFrequency
+    def __init__(self, seed:int, assetCount:int, updatesPerSecond:int):
+        if updatesPerSecond <= 0:
+            raise ValueError("updatesPerSecond must be greater than zero")
+        
+        self.seed = seed
+        self.rnd = random.Random(seed)
+        self.assetCount = assetCount
+        # Handle 
+        self.assets = self._createAssets(assetCount)
+        
+        self.updatesPerSecond = updatesPerSecond
+        self.updateIntervalSeconds = 1.0 / updatesPerSecond
+        self.maximumElapsedSeconds = self.updateIntervalSeconds * 2
+        self.running = False
+        self.lastTick = monotonic()
+    
+    # Create assets
+    # Input: Assetcount, TODO predeterminedPaths 
+    def _createAssets(self, assetCount)-> List[Asset]:
+        assets = []
+        for i in range(assetCount):
+            latitude,longitude = generatePositions(self.rnd)
+            timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="milliseconds")
+            
+            # Create new asset object
+            asset = Asset(
+            type = "public",
+            droneId = "drone:"+str(i),
+            longitude = longitude,
+            latitude = latitude,
+            sequence = 0,
+            heading = generateHeading(self.rnd),
+            speed = generateSpeed(self.rnd),
+            timestamp = timestamp
+            
+            )
+            
+            assets.append(asset)
+        return assets
+    # Updates assets location
+    def _updateAssetPosition(self, asset: Asset, elapsedT: float, timestamp:str)-> Asset:
+        latitude, longitude = updatePosition(asset.latitude, asset.longitude, asset.heading,asset.speed,elapsedT)
+        return replace(asset, latitude=latitude, longitude=longitude, sequence=asset.sequence+1, timestamp=timestamp)
+    
+    # 
+    def tick(self)->list[Asset]:
+        currentTick = monotonic()
+        elapsedT = currentTick - self.lastTick
+        elapsedT = max(0.0, elapsedT)
+        elapsedT = min(elapsedT, self.maximumElapsedSeconds)
+        self.lastTick = currentTick
+
+        timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="milliseconds")
+        updatedAssets = []
+        for asset in self.assets:
+             
+            updatedAssets.append(
+                self._updateAssetPosition(asset,elapsedT=elapsedT, timestamp=timestamp)
+            )
+        self.assets = updatedAssets
+        return updatedAssets
+    
+    # Resets the generator back to Initial assets
+    def reset(self):
+        self.lastTick = monotonic()
+        self.rnd = random.Random(self.seed)
+        self.assets = self._createAssets(self.assetCount)
