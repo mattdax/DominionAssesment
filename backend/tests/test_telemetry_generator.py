@@ -13,7 +13,7 @@ class TestTelemetryGenerator(unittest.TestCase):
         for asset in gen.assets:
             asset = gen.assets[0]
             self.assertIsInstance(asset,Asset)
-            self.assertEqual(asset.type,"public")
+            self.assertEqual(asset.assetType,"public")
             self.assertEqual(asset.sequence,0)
             self.assertIsInstance(asset.latitude, float)
             self.assertIsInstance(asset.longitude, float)

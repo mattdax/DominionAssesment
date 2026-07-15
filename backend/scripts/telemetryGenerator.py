@@ -7,8 +7,8 @@ from time import monotonic
 
 @dataclass
 class Asset:
-    droneId: str
-    type: str
+    assetId: str
+    assetType: str
     longitude: float
     latitude: float
     sequence: int
@@ -62,8 +62,9 @@ class TelemetryGenerator():
             
             # Create new asset object
             asset = Asset(
-            type = "public",
-            droneId = "drone:"+str(i),
+            assetId = "drone:"+str(i),
+            assetType = "public",
+            
             longitude = longitude,
             latitude = latitude,
             sequence = 0,
