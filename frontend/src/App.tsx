@@ -4,7 +4,7 @@ import './App.css'
 import { useAssetQuery } from './queries/useAssetQuery'
 import { useAssetStore } from './state/useAssetStore'
 import { useAssetSocket } from './realtime/useAssetSocket'
-
+import { AssetMap } from './map/map'
 function App() {
   
   const {data: assets, isPending, isError, error} = useAssetQuery()
@@ -25,7 +25,9 @@ function App() {
   if (isError) return <p>{error.message}</p>
   if (isPending) return <p>Loading Assets...</p>
   return (
+   
     <div>
+      <AssetMap/>
     <p>Received: {assets.length} assets</p>
     <p> Assets in Zustand: {storedAssetCount} </p>
     <p>Current Sequence: {firstAsset?.sequence}</p>
