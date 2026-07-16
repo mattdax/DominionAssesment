@@ -4,6 +4,6 @@ server = create_server()
 
 if __name__ == "__main__":
     
-    socketio.run(server,host="localhost",
-                port=4000,
+    socketio.run(server,host=server.config["SERVER_HOST"],
+                port=server.config["SERVER_PORT"],
                 debug=True,)
