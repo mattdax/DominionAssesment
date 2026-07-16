@@ -38,7 +38,7 @@ class TelemetryHandler:
             while self.running:
                 update = self.tick()
             
-                self.socketio.emit("assets.updated", update)
+                self.socketio.emit("assets.updated", {"assets":update})
                 self.socketio.sleep(self.generator.updateIntervalSeconds)
         finally:
             self.task = None

@@ -1,4 +1,5 @@
 from flask import Flask, jsonify
+from flask_cors import CORS
 from scripts.telemetryGenerator import TelemetryGenerator
 from .telemetryHandler import TelemetryHandler
 from .socketHandler import socketio
@@ -9,6 +10,19 @@ def create_server()->Flask:
     
     # Set Config
     app.config.from_mapping(config())
+
+    # Config CORS
+    CORS(app, resources={
+        "/api/*":{
+            "origins":[
+                app.config["FRONTEND_ORIGIN"]
+            ],
+            "methods":[
+                "GET","OPTIONS"
+            ]
+        }
+    }
+    )
 
     # Setup Telemetry generator and handler
     generator = TelemetryGenerator(seed=app.config["TELEMETRY_SEED"],assetCount=app.config["TELEMETRY_ASSET_COUNT"],updatesPerSecond=app.config["TELEMETRY_UPDATES_PER_SECOND"])

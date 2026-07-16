@@ -48,7 +48,7 @@ class TestSockets(unittest.TestCase):
         updates = [
         event for event in response if event["name"] == "assets.updated"]
         
-        assets = updates[0]["args"][0]
+        assets = updates[0]["args"][0]["assets"]
         updatedAssetsById = {
             asset["assetId"]: asset for asset in assets
         }
@@ -96,18 +96,35 @@ class TestSockets(unittest.TestCase):
         updatesOne = [ event for event in responseOne if event["name"] == "assets.updated"]
         updatesTwo = [ event for event in responseTwo if event["name"] == "assets.updated"]
         
-        updateAssetsOne = updatesOne[0]["args"][0]
-        updateAssetsTwo = updatesOne[0]["args"][0]
+
+        updateAssetsOne = updatesOne[0]["args"][0]["assets"]
+        updateAssetsTwo = updatesTwo[0]["args"][0]["assets"]
+        
+        updatesBySequenceOne = {
+            event["args"][0]["assets"][0]["sequence"]:
+                event["args"][0]["assets"]
+            for event in updatesOne if event["args"][0]["assets"]
+        }
+
+        updatesBySequenceTwo = {
+            event["args"][0]["assets"][0]["sequence"]:
+            event["args"][0]["assets"]
+            for event in updatesTwo if event["args"][0]["assets"]
+}
+
+        updatesMatch = (set(updatesBySequenceTwo) & set(updatesBySequenceOne))
+        self.assertTrue(updatesMatch)
+
         updatedAssetsByIdOne = {
-            asset["assetId"]: asset for asset in updateAssetsOne
+            asset["assetId"]: asset
+            for asset in updatesBySequenceOne[max(updatesMatch)]
         }
+
         updatedAssetsByIdTwo = {
-            asset["assetId"]: asset for asset in updateAssetsTwo
+            asset["assetId"]: asset
+            for asset in updatesBySequenceTwo[max(updatesMatch)]
         }
+
         # Check 2 clients have same assets after an update
-        for key in updatedAssetsByIdOne.keys():
-            self.assertEqual(updatedAssetsByIdOne[key]["timestamp"], updatedAssetsByIdTwo[key]["timestamp"])
-            self.assertEqual(updatedAssetsByIdOne[key]["sequence"], updatedAssetsByIdTwo[key]["sequence"])
-            self.assertEqual(updatedAssetsByIdOne[key]["assetId"], updatedAssetsByIdTwo[key]["assetId"])
-            self.assertEqual(updatedAssetsByIdOne[key]["longitude"], updatedAssetsByIdTwo[key]["longitude"])
-            self.assertEqual(updatedAssetsByIdOne[key]["latitude"], updatedAssetsByIdTwo[key]["latitude"])
+        self.assertEqual(updatedAssetsByIdTwo,updatedAssetsByIdOne)
+        clientTwo.disconnect()
