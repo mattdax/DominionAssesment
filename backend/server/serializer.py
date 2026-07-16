@@ -1,12 +1,12 @@
 from scripts.telemetryGenerator import Asset
 from dataclasses import asdict
-import json
 
-def serializeAsset(asset: Asset)-> str:
+
+def serializeAsset(asset: Asset)-> dict:
     return asdict(asset)
 
 # Serialize a list of assets to JSON string
-def serializeAssets(assets: list[Asset])-> str:
+def serializeAssets(assets: list[Asset])-> list[dict]:
     serializedAssets = []
     for asset in assets:
         serializedAssets.append(
