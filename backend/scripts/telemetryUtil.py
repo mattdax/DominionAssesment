@@ -14,7 +14,7 @@ MIN_LONG = -75.90
 # 2 km per minute fastest
 
 MIN_SPEED = 1.666
-MAX_SPEED = 33.33
+MAX_SPEED = 66.666
 
 # Geo setup
 GEODISC = Geodesic.WGS84

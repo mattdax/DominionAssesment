@@ -7,6 +7,8 @@ type AssetActions = {
     setAssets: (assets: Asset[])=>void,
     applyUpdate: (assets: Asset[])=>void,
     clearAssets: ()=>void
+    selectAsset: (assetId: string)=>void,
+    clearSelectedAsset: ()=>void
 }
 // Create Store type
 type AssetState = ReturnType<typeof createInitialAssetState>;
@@ -34,5 +36,8 @@ export const useAssetStore = create<AssetStore>()(
     },
     clearAssets: ()=>{
         set(createInitialAssetState())
-    }
+    },
+    selectAsset: (assetId)=> set({selectedAssetId: assetId}),
+
+    clearSelectedAsset: ()=> set({selectedAssetId: null})
 }))
