@@ -10,6 +10,7 @@ export type Asset ={
     heading: number,
     speed:number,
     timestamp: string
+    analysis: AssetAnalysis
 }
 
 export type RestrictedZone = Feature<Polygon, {
@@ -26,4 +27,16 @@ export type AddedTool = {
     zones: RestrictedZone[],
     patrolPaths: PatrolPath[];
     activePatrolPathId: string | null;
+}
+
+export type ThreatLevel = "normal" | "warning" | "critical"
+
+export type AssetAnalysis= {
+    assetId: string;
+    isInsideZone: boolean;
+    nearestZoneId: string | null;
+    distanceToZone: number | null;
+    entryZoneId: string | null;
+    tte: number | null;
+    threatLevel: ThreatLevel;
 }

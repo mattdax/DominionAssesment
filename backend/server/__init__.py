@@ -27,12 +27,14 @@ def create_server()->Flask:
     )
 
     # Setup Telemetry generator and handler
+    toolHandler = ToolHandler()
+    app.extensions["tool_handler"] = toolHandler
     generator = TelemetryGenerator(seed=app.config["TELEMETRY_SEED"],assetCount=app.config["TELEMETRY_ASSET_COUNT"],updatesPerSecond=app.config["TELEMETRY_UPDATES_PER_SECOND"])
-    telemetryHandler = TelemetryHandler(generator, socketio)
+    telemetryHandler = TelemetryHandler(generator, socketio, toolHandler)
     app.extensions["telemetry_handler"] = telemetryHandler
     
     # Setup toolHandler
-    app.extensions["tool_handler"] = ToolHandler()
+    
 
     socketio.init_app(app,cors_allowed_origins=[app.config["FRONTEND_ORIGIN"],])
     

@@ -4,6 +4,7 @@ from .telemetryHandler import TelemetryHandler
 from .toolHandler import ToolHandler
 socketio = SocketIO()
 
+# Handler fetches
 def getTelemetryHandler()->TelemetryHandler:
     return current_app.extensions["telemetry_handler"]
 def getToolHandler()->ToolHandler:
@@ -14,9 +15,12 @@ def getToolHandler()->ToolHandler:
 def connect(auth=None):
     handler = getTelemetryHandler()
     snapshot = handler.getSnapshot()
+    # Asset snapshot
     emit("assets.snapshot",{"assets": snapshot})
     toolHandler = getToolHandler()
+    # Tool snapshot
     emit("tools.snapshot",toolHandler.getSnapshot())
+    # Start generation loop
     handler.start()
 @socketio.on("zone.insert")
 def handleZoneInsert(payload):

@@ -1,5 +1,6 @@
 
 import { useEffect } from 'react'
+import { AssetDetails } from './map/assetDetails'
 import './App.css'
 import { useAssetQuery } from './queries/useAssetQuery'
 import { useAssetStore } from './state/useAssetStore'
@@ -28,6 +29,7 @@ function App() {
    
     <div>
       <AssetMap/>
+      <AssetDetails/>
     <p>Received: {assets.length} assets</p>
     <p> Assets in Zustand: {storedAssetCount} </p>
     <p>Current Sequence: {firstAsset?.sequence}</p>

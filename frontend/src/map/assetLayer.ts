@@ -12,12 +12,26 @@ export function AssetLayer(): CircleLayerSpecification {
         paint:{
             "circle-radius": ["case",["boolean",["feature-state", "selected"],false],
             9,6],
-            "circle-color": ["case", ["boolean",["feature-state","selected"], false],
-            "#d97706",
-            "#2563a6"
+            "circle-color": [
+                "match", ["get", "threatLevel"],
+
+                    "warning",
+                    "#d97706",
+
+                    "critical",
+                    "#dc2626",
+
+                    "#2563a6",
             ],
-            "circle-stroke-color": "#f3f6fa",
-            "circle-stroke-width": 1.5,
+            "circle-stroke-color": ["case",["boolean", ["feature-state", "selected"], false],
+                "#172033",
+                "#f3f6fa",
+            ],
+
+            "circle-stroke-width": ["case",["boolean", ["feature-state", "selected"], false],
+                3,
+                1.5,
+            ],
         }
 
     }

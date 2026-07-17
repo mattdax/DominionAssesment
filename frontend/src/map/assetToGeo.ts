@@ -1,5 +1,5 @@
 import type { Point, Feature, FeatureCollection } from "geojson";
-import type { Asset } from "../types/types";
+import type { Asset, ThreatLevel } from "../types/types";
 
 type AssetProperties ={
     assetId: string,
@@ -7,7 +7,8 @@ type AssetProperties ={
     heading:number,
     speed:number,
     sequence:number,
-    timestamp:string
+    timestamp:string,
+    threatLevel: ThreatLevel
 }
 
 export function assetToGeo(asset: Asset): Feature<Point,AssetProperties> {
@@ -20,7 +21,9 @@ export function assetToGeo(asset: Asset): Feature<Point,AssetProperties> {
             heading:asset.heading,
             speed:asset.speed,
             sequence:asset.sequence,
-            timestamp: asset.timestamp
+            timestamp: asset.timestamp,
+            threatLevel: asset.analysis.threatLevel
+
         },
         geometry: {
             type:"Point",

@@ -1,7 +1,8 @@
 from scripts.telemetryGenerator import Asset
 from dataclasses import asdict
+from scripts.timeToEntry import AssetAnalysis
 
-
+# Serialize singular asset
 def serializeAsset(asset: Asset)-> dict:
     return asdict(asset)
 
@@ -13,6 +14,12 @@ def serializeAssets(assets: list[Asset])-> list[dict]:
             serializeAsset(asset)
         )
     return serializedAssets
+# Adds analysis to serialized asset.
+# TODO Combine serializeAsset and serializeAssetWithAnalysis function
+def serializeAssetWithAnalysis(asset:Asset,analysis:AssetAnalysis):
+    serializedAsset = serializeAsset(asset)
+    serializedAsset["analysis"] = asdict(analysis)
+    return serializedAsset
 
 
     

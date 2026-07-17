@@ -1,4 +1,6 @@
 import os
+# env config
+# TODO: setup .env 
 def config()->dict:
         config = {
                "TELEMETRY_SEED":int(os.getenv("TELEMETRY_SEED","100")),

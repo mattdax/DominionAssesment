@@ -31,6 +31,8 @@ class ToolHandler:
     # Set active patrol path id
     def setActivePatrolPath(self, pathId: str | None):
         self.activePatrolPathId = pathId
+    def getZones(self)->list[dict]:
+        return list(self.zonesById.values())
         
         
         
