@@ -3,7 +3,7 @@ from server import create_server
 from server.socketHandler import socketio
 from server.telemetryHandler import TelemetryHandler
 from scripts.telemetryGenerator import Asset
-class TestSockets(unittest.TestCase):
+class TestSocketsTelemetry(unittest.TestCase):
     def setUp(self):
         self.server = create_server()
         self.handler: TelemetryHandler = self.server.extensions["telemetry_handler"]

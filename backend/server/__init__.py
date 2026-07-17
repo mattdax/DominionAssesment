@@ -2,8 +2,10 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from scripts.telemetryGenerator import TelemetryGenerator
 from .telemetryHandler import TelemetryHandler
+from.toolHandler import ToolHandler
 from .socketHandler import socketio
 from .config import config
+
 
 def create_server()->Flask:
     app = Flask(__name__)
@@ -29,6 +31,9 @@ def create_server()->Flask:
     telemetryHandler = TelemetryHandler(generator, socketio)
     app.extensions["telemetry_handler"] = telemetryHandler
     
+    # Setup toolHandler
+    app.extensions["tool_handler"] = ToolHandler()
+
     socketio.init_app(app,cors_allowed_origins=[app.config["FRONTEND_ORIGIN"],])
     
     @app.get("/health")
