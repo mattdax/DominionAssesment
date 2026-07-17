@@ -6,6 +6,21 @@ from scripts.autoDrone import (
     AutonomousDroneController,
 )
 
+testPath = {
+    "type": "Feature",
+    "id": "path-1",
+    "geometry": {
+        "type": "LineString",
+        "coordinates": [
+            [-75.6972, 45.4215],
+            [-75.6872, 45.4215],
+        ],
+    },
+    "properties": {
+        "kind": "patrol-path",
+    },
+}
+
 class TestAutonomousDroneController(unittest.TestCase):
     def setUp(self):
         self.controller = AutonomousDroneController(
@@ -34,4 +49,17 @@ class TestAutonomousDroneController(unittest.TestCase):
         )
         self.assertEqual(drone.mode, "idle")
         self.assertEqual(drone.speed, 0.0)
-    
+    def test_drone_moves_on_active_path(self):
+    # First tick activates the path.
+        self.controller.tick(1.0, testPath,[],{})
+
+        before = self.controller.getSnapshot()
+
+        # Second tick performs movement.
+        after = self.controller.tick(1.0,testPath,[],{},)
+
+        self.assertNotEqual((before.longitude, before.latitude,),
+                            (after.longitude, after.latitude,))
+
+        self.assertEqual(after.mode, "patrol")
+        self.assertEqual(after.sequence,before.sequence + 1,)

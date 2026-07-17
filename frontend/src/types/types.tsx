@@ -25,18 +25,33 @@ export type PatrolPath = Feature<LineString, {
 
 export type AddedTool = {
     zones: RestrictedZone[],
-    patrolPaths: PatrolPath[];
-    activePatrolPathId: string | null;
+    patrolPaths: PatrolPath[],
+    activePatrolPathId: string | null
 }
 
 export type ThreatLevel = "normal" | "warning" | "critical"
 
 export type AssetAnalysis= {
-    assetId: string;
-    isInsideZone: boolean;
-    nearestZoneId: string | null;
-    distanceToZone: number | null;
-    entryZoneId: string | null;
-    tte: number | null;
-    threatLevel: ThreatLevel;
+    assetId: string,
+    isInsideZone: boolean,
+    nearestZoneId: string | null,
+    distanceToZone: number | null,
+    entryZoneId: string | null,
+    tte: number | null,
+    threatLevel: ThreatLevel
+}
+
+export type DoneMode = "idle"| "patrol"|"intercept"|"shadow"
+
+export type AutonomousDrone = {
+    assetId: string,
+    assetType: string,
+    longitude: number,
+    latitude: number,
+    sequence: number,
+    heading: number,
+    speed: number,
+    timestamp: number,
+    mode: DoneMode,
+    targetId: string
 }

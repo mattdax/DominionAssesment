@@ -1,7 +1,7 @@
-from scripts.telemetryGenerator import TelemetryGenerator
-from scripts.timeToEntry import returnAnalysis
+from scripts.telemetryGenerator import TelemetryGenerator, Asset
+from scripts.timeToEntry import returnAnalysis, AssetAnalysis
 from scripts.autoDrone import AutonomousDroneController
-from server.serializer import serializeAssetWithAnalysis
+from server.serializer import serializeAssetWithAnalysis, serializeAutonomousDrone
 from flask_socketio import SocketIO
 from .toolHandler import ToolHandler
 
@@ -16,12 +16,19 @@ class TelemetryHandler:
     
     # Returns current assets
     def getSnapshot(self)-> list[dict]:
-        return self.getAnalyzedAssets()
+        serialized, _ = self.getAnalyzedAssets()
+        return serialized
     
     # Increments assets by tick and returns new assets
     def tick(self)-> list[dict]:
-        self.generator.tick()
-        return self.getAnalyzedAssets()
+        updated = self.generator.tick()
+        serializedAssets, analysisById = self.getAnalyzedAssets(updated)
+        activePath = self.toolHandler.getActivePatrolPath()
+        self.droneController.tick(elapsedSeconds=self.generator.lastElapsedSeconds, 
+                                  patrolPath=activePath,assets=updated, analysisByAssetId=analysisById)
+        
+        
+        return serializedAssets
     
     # Returns whether service is active
     def isRunning(self)->bool:
@@ -45,20 +52,25 @@ class TelemetryHandler:
                 update = self.tick()
                 # Emit updated assets
                 self.socketio.emit("assets.updated", {"assets":update})
+
+                self.socketio.emit("autonomous-drone.updated",{"drone":self.getDroneSnapshot()})
                 # Wait for next interval
                 self.socketio.sleep(self.generator.updateIntervalSeconds)
         finally:
             self.task = None
             self.running = False
-    # Preforms analysis on all assets and returns them serialized
-    def getAnalyzedAssets(self)->list[dict]:
+    # Preforms analysis on all assets and returns them serialized and grouped by id (for use in autoDrone) 
+    def getAnalyzedAssets(self, assets: list[Asset])->tuple[list[dict], dict[str,AssetAnalysis]]:
         zones = self.toolHandler.getZones()
         serializedAssets = []
-
-        for asset in self.generator.assets:
+        analysisById = {}
+        
+        for asset in assets:
             analysis = returnAnalysis(asset,zones)
+            analysisById[asset.assetId] = analysis
             serialized = serializeAssetWithAnalysis(asset,analysis)
             serializedAssets.append(serialized)
-        return serializedAssets
-            
+        return (serializedAssets,analysisById)
+    def getDroneSnapshot(self)->dict:
+        return serializeAutonomousDrone(self.droneController.getSnapshot())
       

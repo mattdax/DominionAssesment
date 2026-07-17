@@ -1,7 +1,7 @@
 from scripts.telemetryGenerator import Asset
 from dataclasses import asdict
 from scripts.timeToEntry import AssetAnalysis
-
+from scripts.autoDrone import AutonomousDrone
 # Serialize singular asset
 def serializeAsset(asset: Asset)-> dict:
     return asdict(asset)
@@ -21,5 +21,6 @@ def serializeAssetWithAnalysis(asset:Asset,analysis:AssetAnalysis):
     serializedAsset["analysis"] = asdict(analysis)
     return serializedAsset
 
-
+def serializeAutonomousDrone(drone: AutonomousDrone):
+    return asdict(drone)
     

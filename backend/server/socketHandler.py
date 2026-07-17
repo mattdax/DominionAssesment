@@ -20,6 +20,11 @@ def connect(auth=None):
     toolHandler = getToolHandler()
     # Tool snapshot
     emit("tools.snapshot",toolHandler.getSnapshot())
+    
+    # Drone Snapshot
+    emit("autonomous-drone.snapshot",{"drone": handler.getDroneSnapshot()})
+
+
     # Start generation loop
     handler.start()
 @socketio.on("zone.insert")

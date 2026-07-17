@@ -1,6 +1,22 @@
 import unittest
 import json
 from server import create_server
+
+testPath = {
+    "type": "Feature",
+    "id": "path-1",
+    "geometry": {
+        "type": "LineString",
+        "coordinates": [
+            [-75.6972, 45.4215],
+            [-75.6872, 45.4215],
+        ],
+    },
+    "properties": {
+        "kind": "patrol-path",
+    },
+}
+
 class TestEndpoints(unittest.TestCase):
     def setUp(self):
         server = create_server()

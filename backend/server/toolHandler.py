@@ -30,7 +30,7 @@ class ToolHandler:
         return removed
     # Set active patrol path id
     def setActivePatrolPath(self, pathId: str | None):
-        if pathId not in self.patrolPathsById:
+        if pathId not in self.patrolPathsById and pathId is not None:
             return False
         
         self.activePatrolPathId = pathId
