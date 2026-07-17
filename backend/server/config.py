@@ -13,7 +13,7 @@ def config()->dict:
 
                 "AUTONOMOUS_DRONE_START_LONGITUDE":float (os.getenv("AUTONOMOUS_DRONE_START_LONGITUDE", "-75.6972")),
                 "AUTONOMOUS_DRONE_START_LATITUDE":float (os.getenv("AUTONOMOUS_DRONE_START_LATITUDE", "45.4215")),
-                "AUTONOMOUS_DRONE_PATROL_SPEED":float(os.getenv("AUTONOMOUS_DRONE_PATROL_SPEED","20.0")),
+                "AUTONOMOUS_DRONE_PATROL_SPEED":float(os.getenv("AUTONOMOUS_DRONE_PATROL_SPEED","100.0")),
                 "AUTONOMOUS_DRONE_WAYPOINT_TOLERANCE":float(os.getenv("AUTONOMOUS_DRONE_WAYPOINT_TOLERANCE","5.0"))
         }
         return config

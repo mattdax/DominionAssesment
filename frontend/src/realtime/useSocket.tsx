@@ -3,7 +3,9 @@ import type { Asset, PatrolPath, RestrictedZone } from "../types/types";
 import { useEffect } from "react";
 import { useAssetStore } from "../state/useAssetStore";
 import { useAddedToolStore } from "../state/useAddedToolStore";
-import type { AddedTool } from "../types/types";
+import { useDroneStore } from "../state/useDroneStore";
+import type { AddedTool, AutonomousDrone } from "../types/types";
+
 type AssetsPayload = {
     assets: Asset[]
 }
@@ -22,6 +24,9 @@ type PathDeletedPayload = {
 type ActivePathPayload = {
     pathId: string | null
 }
+type DronePayload = {
+    drone: AutonomousDrone
+}
 
 export function useSocket(enabled=true){
     const setAssets = useAssetStore((state)=> state.setAssets)
@@ -32,6 +37,9 @@ export function useSocket(enabled=true){
     const removeZone = useAddedToolStore((state)=>state.removeZone)
     const removePath = useAddedToolStore((state)=>state.removePath)
     const setActivePatrolPath = useAddedToolStore((state)=>state.setActivePatrolPath)
+    const setDrone = useDroneStore((state)=>state.setDrone)
+
+
     useEffect(()=>{
         if(!enabled){
             return
@@ -62,6 +70,9 @@ export function useSocket(enabled=true){
         const handleActivePath = (payload: ActivePathPayload)=>{
             setActivePatrolPath(payload.pathId)
         }
+        const handleDroneState = (payload: DronePayload)=>{
+            setDrone(payload.drone)
+        }
         socket.on("assets.snapshot",handleAssetSnapshot)
         socket.on("assets.updated",handleAssetUpdate)
         
@@ -71,6 +82,8 @@ export function useSocket(enabled=true){
         socket.on("path.inserted",handleAddPath)
         socket.on("path.deleted",handleRemovePath)
         socket.on("path.activated",handleActivePath)
+        socket.on("autonomous-drone.snapshot",handleDroneState)
+        socket.on("autonomous-drone.updated",handleDroneState)
         socket.connect();
 
         return ()=>{
@@ -83,7 +96,9 @@ export function useSocket(enabled=true){
             socket.off("path.inserted",handleAddPath)
             socket.off("path.deleted",handleRemovePath)
             socket.off("path.activated",handleActivePath)
+            socket.off("autonomous-drone.snapshot",handleDroneState)
+            socket.off("autonomous-drone.updated",handleDroneState)
             socket.disconnect()
         }
-    },[enabled,setAssets,applyUpdate,addPath,addZone,removePath,removeZone,setActivePatrolPath,setToolSnapshot])
+    },[enabled,setAssets,applyUpdate,addPath,addZone,removePath,removeZone,setActivePatrolPath,setToolSnapshot,setDrone])
 }

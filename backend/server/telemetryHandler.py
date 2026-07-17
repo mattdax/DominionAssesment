@@ -16,7 +16,7 @@ class TelemetryHandler:
     
     # Returns current assets
     def getSnapshot(self)-> list[dict]:
-        serialized, _ = self.getAnalyzedAssets()
+        serialized, _ = self.getAnalyzedAssets(self.generator.assets)
         return serialized
     
     # Increments assets by tick and returns new assets

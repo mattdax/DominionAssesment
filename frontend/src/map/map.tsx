@@ -13,6 +13,9 @@ import { drawToTool } from "./drawToTool"
 import type { PatrolPath, RestrictedZone } from "../types/types"
 import { socket } from "../realtime/socket"
 import { syncToolsToDraw } from "./toolToDraw"
+import { DroneLayer, DRONE_SOURCE_ID } from "./droneLayer"
+import { useDroneStore } from "../state/useDroneStore"
+import { droneToGeo } from "./droneToGeo"
 
 
 export function AssetMap(){
@@ -22,13 +25,14 @@ export function AssetMap(){
     const previousSelectedId = useRef<string | null>(null);
     const isApplyingToolSync = useRef(false);
     
-    // Load Stores
+    // Load Store values & functions
     const addPath = useAddedToolStore((state)=> state.addPath)
     const addZone = useAddedToolStore((state)=> state.addZone)
     
     const assetsById = useAssetStore((state)=> state.assetsById)
     const assetCollection = useMemo(()=> assetsToGeo(Object.values(assetsById)),[assetsById])
     const selectedId = useAssetStore((state)=>state.selectedAssetId)
+    const drone = useDroneStore((state)=>state.drone)
 
     
     // Runs on Component Mount
@@ -50,6 +54,7 @@ export function AssetMap(){
                     center: [-75.6972, 45.4215],
                     zoom: 9    
                 })
+        // Add Nav Control
         map.addControl(new maplibregl.NavigationControl(),"top-left")
         
         
@@ -66,6 +71,14 @@ export function AssetMap(){
             })
             map.addLayer(AssetLayer())
             assetActions = LoadAssetActions(map)
+            
+            const drone = useDroneStore.getState().drone
+            map.addSource(DRONE_SOURCE_ID,{
+                type: "geojson",
+                data: drone ? droneToGeo(drone): {type: "FeatureCollection",features: []}})
+            
+            map.addLayer(DroneLayer())
+           
             map.addControl(drawControl)
             drawControl.activate()
 
@@ -98,7 +111,8 @@ export function AssetMap(){
                 }
                 else{
                      addPath(tool as PatrolPath)
-                     socket.emit("path.insert", {"path": tool as PatrolPath});
+                     socket.emit("path.insert", {"path": tool as PatrolPath})
+                      socket.emit("path.activate", {pathId: tool.id,})
                 }
             },
             (deletedIds)=>{
@@ -143,6 +157,7 @@ export function AssetMap(){
         if(!map){
             return
         }
+
         const previousId = previousSelectedId.current
         if(previousId){
              map.setFeatureState({
@@ -174,5 +189,15 @@ export function AssetMap(){
             source.setData(assetCollection)
         }
     },[assetCollection])
+    useEffect(()=>{
+        const map = mapRef.current
+        if (!map){
+            return
+        }
+        const source = map.getSource(DRONE_SOURCE_ID) as maplibregl.GeoJSONSource | undefined
+        if(source){
+            source.setData(drone ? droneToGeo(drone): {type: "FeatureCollection",features: []})
+        }
+    },[drone])
     return (<div ref={container} className="asset-map"></div>)
 }

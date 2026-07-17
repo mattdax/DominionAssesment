@@ -41,7 +41,7 @@ export type AssetAnalysis= {
     threatLevel: ThreatLevel
 }
 
-export type DoneMode = "idle"| "patrol"|"intercept"|"shadow"
+export type DroneMode = "idle"| "patrol"|"intercept"|"shadow"
 
 export type AutonomousDrone = {
     assetId: string,
@@ -51,7 +51,7 @@ export type AutonomousDrone = {
     sequence: number,
     heading: number,
     speed: number,
-    timestamp: number,
-    mode: DoneMode,
-    targetId: string
+    timestamp: string,
+    mode: DroneMode,
+    targetId: string | null
 }
