@@ -1,5 +1,6 @@
 import { useEffect, useRef, useMemo } from "react"
 import { useAssetStore } from "../state/useAssetStore"
+import { useAddedToolStore } from "../state/useAddedToolStore"
 import { assetsToGeo } from "./assetToGeo"
 import maplibregl from "maplibre-gl"
 import "maplibre-gl/dist/maplibre-gl.css"
@@ -7,16 +8,22 @@ import "./map.css"
 import { ASSET_SOURCE_ID, AssetLayer } from "./assetLayer"
 import { LoadAssetActions } from "./assetActions"
 import { drawControls } from "./drawControls"
-
+import { LoadDrawActions } from "./drawActions"
+import { drawToTool } from "./drawToTool"
+import type { PatrolPath, RestrictedZone } from "../types/types"
 
 
 
 
 export function AssetMap(){
+    // Setup references
     const container = useRef<HTMLDivElement | null>(null)
     const mapRef = useRef<maplibregl.Map | null> (null)
     const previousSelectedId = useRef<string | null>(null);
     
+    // Load Stores
+    const addPath = useAddedToolStore((state)=> state.addPath)
+    const addZone = useAddedToolStore((state)=> state.addZone)
     
     const assetsById = useAssetStore((state)=> state.assetsById)
     const assetCollection = useMemo(()=> assetsToGeo(Object.values(assetsById)),[assetsById])
@@ -30,8 +37,9 @@ export function AssetMap(){
         if(!container.current || mapRef.current){
             return
         }
-
+        // Init external map actions
         let assetActions: (() => void) | undefined;
+        let drawActions: (()=> void) | undefined
 
         // Define map
         const map = new maplibregl.Map({container: container.current, 
@@ -57,6 +65,29 @@ export function AssetMap(){
             assetActions = LoadAssetActions(map)
             map.addControl(drawControl)
 
+            drawActions = LoadDrawActions(drawControl,(feature)=>{
+                const tool = drawToTool(feature);
+                if(tool.geometry.type == "Polygon"){
+                    addZone(tool as RestrictedZone)
+                }
+                else{
+                     addPath(tool as PatrolPath)
+                }
+            },
+            (deletedIds)=>{
+                const store = useAddedToolStore.getState()
+                for(const id of deletedIds){
+                    if(store.zones.map((zone)=>zone.id == id)){
+                        store.removeZone(id)
+                        continue
+                    }
+                    if(store.patrolPaths.map((path)=>path.id == id)){
+                        store.removePath(id)
+                    }
+                }
+            }
+        )
+
         }
         map.on("load",handleMapLoad)
         mapRef.current = map
@@ -64,13 +95,14 @@ export function AssetMap(){
         return ()=>{
             assetActions?.()
             map.off("load",handleMapLoad)
+            drawActions?.();
             if(drawControl){
                 map.removeControl(drawControl)
             }
             map.remove()
             mapRef.current = null
         }
-    },[])
+    },[addPath,addZone])
 
     useEffect(()=>{
         const map = mapRef.current
