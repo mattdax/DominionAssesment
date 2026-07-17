@@ -5,7 +5,7 @@ from .telemetryHandler import TelemetryHandler
 from.toolHandler import ToolHandler
 from .socketHandler import socketio
 from .config import config
-
+from scripts.autoDrone import AutonomousDroneController
 
 def create_server()->Flask:
     app = Flask(__name__)
@@ -26,11 +26,14 @@ def create_server()->Flask:
     }
     )
 
-    # Setup Telemetry generator and handler
+    # Setup Telemetry generator+handler, Tool handler, and Drone controller
+    droneController = AutonomousDroneController(startLong=app.config["AUTONOMOUS_DRONE_START_LONGITUDE"], startLat=app.config["AUTONOMOUS_DRONE_START_LATITUDE"],
+                                                patrolSpeed=app.config["AUTONOMOUS_DRONE_PATROL_SPEED"],tolerance=app.config["AUTONOMOUS_DRONE_WAYPOINT_TOLERANCE"])
+    app.extensions["drone_controller"] = droneController
     toolHandler = ToolHandler()
     app.extensions["tool_handler"] = toolHandler
     generator = TelemetryGenerator(seed=app.config["TELEMETRY_SEED"],assetCount=app.config["TELEMETRY_ASSET_COUNT"],updatesPerSecond=app.config["TELEMETRY_UPDATES_PER_SECOND"])
-    telemetryHandler = TelemetryHandler(generator, socketio, toolHandler)
+    telemetryHandler = TelemetryHandler(generator, socketio, toolHandler, droneController)
     app.extensions["telemetry_handler"] = telemetryHandler
     
     # Setup toolHandler

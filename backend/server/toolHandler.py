@@ -30,9 +30,18 @@ class ToolHandler:
         return removed
     # Set active patrol path id
     def setActivePatrolPath(self, pathId: str | None):
+        if pathId not in self.patrolPathsById:
+            return False
+        
         self.activePatrolPathId = pathId
+        return True
     def getZones(self)->list[dict]:
         return list(self.zonesById.values())
+    # Get current active path
+    def getActivePatrolPath(self)->dict | None:
+        if self.activePatrolPathId is None:
+            return None
+        return self.patrolPathsById.get(self.activePatrolPathId)
         
         
         

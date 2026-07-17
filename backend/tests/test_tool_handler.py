@@ -75,5 +75,13 @@ class TestToolHandler(unittest.TestCase):
         self.handler.setActivePatrolPath("path-1")
         self.assertEqual(
             self.handler.getSnapshot()["activePatrolPathId"],"path-1")
+    def test_cannot_activate_missing_path(self):
+        activated = (
+            self.handler.setActivePatrolPath(
+                "missing-path"
+        )
+    )
+
+        self.assertFalse(activated)
 
 

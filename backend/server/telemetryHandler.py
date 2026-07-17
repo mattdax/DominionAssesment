@@ -1,14 +1,16 @@
 from scripts.telemetryGenerator import TelemetryGenerator
 from scripts.timeToEntry import returnAnalysis
-
+from scripts.autoDrone import AutonomousDroneController
 from server.serializer import serializeAssetWithAnalysis
 from flask_socketio import SocketIO
 from .toolHandler import ToolHandler
+
 class TelemetryHandler:
-    def __init__(self,generator: TelemetryGenerator, socketio:SocketIO, toolHandler: ToolHandler):
+    def __init__(self,generator: TelemetryGenerator, socketio:SocketIO, toolHandler: ToolHandler, droneController: AutonomousDroneController):
         self.generator = generator
         self.socketio = socketio
         self.toolHandler = toolHandler
+        self.droneController = droneController
         self.running = False
         self.task = None
     

@@ -49,6 +49,7 @@ class TelemetryGenerator():
         self.updatesPerSecond = updatesPerSecond
         self.updateIntervalSeconds = 1.0 / updatesPerSecond
         self.maximumElapsedSeconds = self.updateIntervalSeconds * 2
+        self.lastElapsedSeconds = 0
         self.running = False
         self.lastTick = monotonic()
     
@@ -88,7 +89,7 @@ class TelemetryGenerator():
         elapsedT = max(0.0, elapsedT)
         elapsedT = min(elapsedT, self.maximumElapsedSeconds)
         self.lastTick = currentTick
-
+        self.lastElapsedSeconds = elapsedT
         timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="milliseconds")
         updatedAssets = []
         for asset in self.assets:
