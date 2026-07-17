@@ -2,6 +2,7 @@ import type { Point, Feature, FeatureCollection } from "geojson";
 import type { Asset } from "../types/types";
 
 type AssetProperties ={
+    assetId: string,
     assetType: string,
     heading:number,
     speed:number,
@@ -13,8 +14,8 @@ export function assetToGeo(asset: Asset): Feature<Point,AssetProperties> {
     
     return {
         type: "Feature",
-        id:asset.assetId,
         properties:{
+            assetId: asset.assetId,
             assetType:asset.assetType,
             heading:asset.heading,
             speed:asset.speed,
