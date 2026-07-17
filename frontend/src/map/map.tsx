@@ -11,8 +11,8 @@ import { drawControls } from "./drawControls"
 import { LoadDrawActions } from "./drawActions"
 import { drawToTool } from "./drawToTool"
 import type { PatrolPath, RestrictedZone } from "../types/types"
-
-
+import { socket } from "../realtime/socket"
+import { syncToolsToDraw } from "./toolToDraw"
 
 
 export function AssetMap(){
@@ -20,6 +20,7 @@ export function AssetMap(){
     const container = useRef<HTMLDivElement | null>(null)
     const mapRef = useRef<maplibregl.Map | null> (null)
     const previousSelectedId = useRef<string | null>(null);
+    const isApplyingToolSync = useRef(false);
     
     // Load Stores
     const addPath = useAddedToolStore((state)=> state.addPath)
@@ -40,6 +41,7 @@ export function AssetMap(){
         // Init external map actions
         let assetActions: (() => void) | undefined;
         let drawActions: (()=> void) | undefined
+        let toolSync: (() => void) | undefined;
 
         // Define map
         const map = new maplibregl.Map({container: container.current, 
@@ -49,6 +51,7 @@ export function AssetMap(){
                     zoom: 9    
                 })
         map.addControl(new maplibregl.NavigationControl(),"top-left")
+        
         
        
         // Initial Map Setup with assets and layer
@@ -64,30 +67,60 @@ export function AssetMap(){
             map.addLayer(AssetLayer())
             assetActions = LoadAssetActions(map)
             map.addControl(drawControl)
+            drawControl.activate()
 
-            drawActions = LoadDrawActions(drawControl,(feature)=>{
+            const syncTools = ()=>{
+                isApplyingToolSync.current = true
+                try{
+                    const instance = drawControl?.getTerraDrawInstance()
+                    if(instance){
+                        syncToolsToDraw(instance, useAddedToolStore.getState())
+                    }
+                    
+
+                }
+                finally {
+                    isApplyingToolSync.current = false
+                }
+            
+            
+        }
+
+            drawActions = LoadDrawActions(drawControl,
+            (feature)=>{
+                if (isApplyingToolSync.current) {
+                    return;
+                }
                 const tool = drawToTool(feature);
                 if(tool.geometry.type == "Polygon"){
                     addZone(tool as RestrictedZone)
+                    socket.emit("zone.insert", {"zone": tool as RestrictedZone});
                 }
                 else{
                      addPath(tool as PatrolPath)
+                     socket.emit("path.insert", {"path": tool as PatrolPath});
                 }
             },
             (deletedIds)=>{
+                if (isApplyingToolSync.current) {
+                    return;
+                }
                 const store = useAddedToolStore.getState()
                 for(const id of deletedIds){
-                    if(store.zones.map((zone)=>zone.id == id)){
+                    if(store.zones.some((zone)=>zone.id === id)){
                         store.removeZone(id)
+                        socket.emit("zone.delete", {"zoneId":id});
                         continue
                     }
-                    if(store.patrolPaths.map((path)=>path.id == id)){
+                    if(store.patrolPaths.some((path)=>path.id === id)){
                         store.removePath(id)
+                        socket.emit("path.delete", {"pathId":id});
                     }
                 }
             }
         )
-
+        syncTools();
+        toolSync = useAddedToolStore.subscribe(syncTools)
         }
         map.on("load",handleMapLoad)
         mapRef.current = map
@@ -95,6 +128,7 @@ export function AssetMap(){
         return ()=>{
             assetActions?.()
             map.off("load",handleMapLoad)
+            toolSync?.()
             drawActions?.();
             if(drawControl){
                 map.removeControl(drawControl)

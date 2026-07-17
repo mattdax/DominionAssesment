@@ -51,7 +51,7 @@ export const useAddedToolStore = create<AddedToolStore>()(
                 
                 patrolPaths: [...state.patrolPaths.filter((exists)=>exists.id !== pathId)],
                 
-                // If deleted path is active patrol path stop patrol
+                // If deleted path is active patrol path, stop the patrol
                 activePatrolPathId: state.activePatrolPathId === pathId ? null: state.activePatrolPathId
             }))
         },

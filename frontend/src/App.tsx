@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import './App.css'
 import { useAssetQuery } from './queries/useAssetQuery'
 import { useAssetStore } from './state/useAssetStore'
-import { useAssetSocket } from './realtime/useAssetSocket'
+import { useSocket } from './realtime/useSocket'
 import { AssetMap } from './map/map'
 function App() {
   
@@ -20,7 +20,7 @@ function App() {
     }
   },[assets,setAssets])
 
-  useAssetSocket(assets ? true: false);
+  useSocket(true);
 
   if (isError) return <p>{error.message}</p>
   if (isPending) return <p>Loading Assets...</p>
