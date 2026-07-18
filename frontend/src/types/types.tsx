@@ -55,3 +55,24 @@ export type AutonomousDrone = {
     mode: DroneMode,
     targetId: string | null
 }
+
+export type AssetHistoryPoint ={
+    longitude:number,
+    latitude:number,
+    heading:number,
+    speed:number,
+    sequence: number,
+    timestamp: string
+}
+export type AssetPrediction = {
+    assetId: string,
+    averageHeading: number,
+    averageSpeed: number,
+    predictionSeconds: number,
+    coordinates: [number, number][]
+}
+export type AssetTrajectory = {
+    assetId: string,
+    history: AssetHistoryPoint[]
+    prediction: AssetPrediction | null
+}

@@ -14,9 +14,11 @@ import type { PatrolPath, RestrictedZone } from "../types/types"
 import { socket } from "../realtime/socket"
 import { syncToolsToDraw } from "./toolToDraw"
 import { DroneLayer, DRONE_SOURCE_ID } from "./droneLayer"
+import { HistoryLayer,PredictionLayer, HISTORY_SOURCE_ID, PREDICTION_SOURCE_ID } from "./trajectoryLayers"
 import { useDroneStore } from "../state/useDroneStore"
 import { droneToGeo } from "./droneToGeo"
-
+import {useAssetTrajectoryQuery} from "../queries/useAssetTrajectoryQuery"
+import { historyToGeo, predictionToGeo } from "./trajectoryToGeo"
 
 export function AssetMap(){
     // Setup references
@@ -34,6 +36,7 @@ export function AssetMap(){
     const selectedId = useAssetStore((state)=>state.selectedAssetId)
     const drone = useDroneStore((state)=>state.drone)
 
+    const { data: trajectory} = useAssetTrajectoryQuery(selectedId)
     
     // Runs on Component Mount
     useEffect(()=>{
@@ -69,9 +72,24 @@ export function AssetMap(){
                 data:assetsToGeo(currentAssets),
                 promoteId:"assetId"
             })
+            
+            
+            
+            map.addSource(HISTORY_SOURCE_ID, {
+                type: "geojson",
+                data: historyToGeo(undefined)
+                })
+            
+
+            map.addSource(PREDICTION_SOURCE_ID, {
+                type: "geojson",
+                data: predictionToGeo(undefined)
+                })
+            
+            map.addLayer(HistoryLayer())
+            map.addLayer(PredictionLayer())
             map.addLayer(AssetLayer())
             assetActions = LoadAssetActions(map)
-            
             const drone = useDroneStore.getState().drone
             map.addSource(DRONE_SOURCE_ID,{
                 type: "geojson",
@@ -189,6 +207,7 @@ export function AssetMap(){
             source.setData(assetCollection)
         }
     },[assetCollection])
+    
     useEffect(()=>{
         const map = mapRef.current
         if (!map){
@@ -199,5 +218,19 @@ export function AssetMap(){
             source.setData(drone ? droneToGeo(drone): {type: "FeatureCollection",features: []})
         }
     },[drone])
+
+    useEffect(()=>{
+        const map = mapRef.current
+        if(!map){
+            return
+        }
+        const historySource = map.getSource(HISTORY_SOURCE_ID) as maplibregl.GeoJSONSource | undefined
+        const predictionSource = map.getSource(PREDICTION_SOURCE_ID) as maplibregl.GeoJSONSource | undefined
+
+        const visible = selectedId ? trajectory : undefined
+        historySource?.setData(historyToGeo(visible))
+        predictionSource?.setData(predictionToGeo(visible))
+
+    },[trajectory,selectedId])
     return (<div ref={container} className="asset-map"></div>)
 }
