@@ -16,7 +16,7 @@ The project contains the functionality to:
 The nearest airport drone deployment extension was not implemented.
 ## Demo Link
 The video demo can be found here: [link](https://youtu.be/iTUvzNJrLsg)
-
+- Asset paths were kept straight for ease of demo
 ## LLM Usage
 ### Model
 I used ChatGPT 5/Codex as the sole LLM used to assist during development.
