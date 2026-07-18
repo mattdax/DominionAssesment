@@ -1,11 +1,14 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
+
 from scripts.telemetryGenerator import TelemetryGenerator
+from scripts.assetHistory import AssetHistory
+from scripts.autoDrone import AutonomousDroneController
 from .telemetryHandler import TelemetryHandler
 from.toolHandler import ToolHandler
 from .socketHandler import socketio
 from .config import config
-from scripts.autoDrone import AutonomousDroneController
+
 
 def create_server()->Flask:
     app = Flask(__name__)
@@ -31,12 +34,22 @@ def create_server()->Flask:
                                                 patrolSpeed=app.config["AUTONOMOUS_DRONE_PATROL_SPEED"],tolerance=app.config["AUTONOMOUS_DRONE_WAYPOINT_TOLERANCE"], 
                                                 interceptSpeed=app.config["AUTONOMOUS_DRONE_INTERCEPT_SPEED"], shadowDistance=app.config["AUTONOMOUS_DRONE_SHADOW_DISTANCE"])
     app.extensions["drone_controller"] = droneController
+    
     toolHandler = ToolHandler()
     app.extensions["tool_handler"] = toolHandler
+   
+    
+
     generator = TelemetryGenerator(seed=app.config["TELEMETRY_SEED"],assetCount=app.config["TELEMETRY_ASSET_COUNT"],updatesPerSecond=app.config["TELEMETRY_UPDATES_PER_SECOND"])
-    telemetryHandler = TelemetryHandler(generator, socketio, toolHandler, droneController)
+    
+    assetHistory = AssetHistory(historySeconds=app.config["ASSET_HISTORY_SECONDS"],updatesPerSecond=app.config["TELEMETRY_UPDATES_PER_SECOND"])
+    assetHistory.recordAssets(generator.assets)
+    app.extensions["asset_history"] = assetHistory
+    
+    telemetryHandler = TelemetryHandler(generator, socketio, toolHandler, droneController,assetHistory)
     app.extensions["telemetry_handler"] = telemetryHandler
     
+
     # Setup toolHandler
     
 
@@ -53,4 +66,12 @@ def create_server()->Flask:
         return jsonify({
             "assets": telemetryHandler.getSnapshot()
         })
+    @app.get("/api/assets/<assetId>/trajectory")
+    def getTrajectory(assetId: str):
+        trajectory = telemetryHandler.getTrajectory(assetId)
+        if trajectory == None:
+            return jsonify({
+                "error": "Error with generting trajectory"
+            }),404
+        return jsonify(trajectory),200
     return app

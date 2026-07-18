@@ -17,6 +17,7 @@ def config()->dict:
                 "AUTONOMOUS_DRONE_WAYPOINT_TOLERANCE":float(os.getenv("AUTONOMOUS_DRONE_WAYPOINT_TOLERANCE","5.0")),
                 "AUTONOMOUS_DRONE_INTERCEPT_SPEED": float(os.getenv("AUTONOMOUS_DRONE_INTERCEPT_SPEED","150.0")),
                 "AUTONOMOUS_DRONE_SHADOW_DISTANCE": float(os.getenv("AUTONOMOUS_DRONE_SHADOW_DISTANCE","50.0")),
-                
+
+                "ASSET_HISTORY_SECONDS": int(os.getenv("ASSET_HISTORY_SECONDS", "300"))
         }
         return config

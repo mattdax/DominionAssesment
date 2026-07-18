@@ -23,4 +23,22 @@ def serializeAssetWithAnalysis(asset:Asset,analysis:AssetAnalysis):
 
 def serializeAutonomousDrone(drone: AutonomousDrone):
     return asdict(drone)
-    
+
+def serializeHistoryAssetPoint(asset: Asset)->dict:
+    return{
+        "longitude": asset.longitude,
+        "latitude": asset.latitude,
+        "heading": asset.heading,
+        "speed": asset.speed,
+        "sequence": asset.sequence,
+        "timestamp": asset.timestamp
+    }
+def serializeAssetTrajectory(assetId: str, history: list[Asset],prediction: dict|None)->dict:
+    serializedHistory = []
+    for sample in history:
+        serializedHistory.append(serializeHistoryAssetPoint(sample))
+    return {
+        "assetId": assetId,
+        "history": serializedHistory,
+        "prediction": prediction
+    }

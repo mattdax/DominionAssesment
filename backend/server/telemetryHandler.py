@@ -1,12 +1,21 @@
+from math import radians,cos, atan2, hypot, sin, degrees
 from scripts.telemetryGenerator import TelemetryGenerator, Asset
 from scripts.timeToEntry import returnAnalysis, AssetAnalysis
 from scripts.autoDrone import AutonomousDroneController
-from server.serializer import serializeAssetWithAnalysis, serializeAutonomousDrone
+from scripts.assetHistory import AssetHistory
+from server.serializer import serializeAssetWithAnalysis, serializeAutonomousDrone, serializeAssetTrajectory
 from flask_socketio import SocketIO
 from .toolHandler import ToolHandler
+from geographiclib.geodesic import Geodesic
+
+GEODISC = Geodesic.WGS84
 
 class TelemetryHandler:
-    def __init__(self,generator: TelemetryGenerator, socketio:SocketIO, toolHandler: ToolHandler, droneController: AutonomousDroneController):
+    def __init__(self,generator: TelemetryGenerator, socketio:SocketIO, 
+                 toolHandler: ToolHandler, droneController: AutonomousDroneController,
+                 assetHistory: AssetHistory):
+        
+        self.assetHistory = assetHistory
         self.generator = generator
         self.socketio = socketio
         self.toolHandler = toolHandler
@@ -22,6 +31,9 @@ class TelemetryHandler:
     # Increments assets by tick and returns new assets
     def tick(self)-> list[dict]:
         updated = self.generator.tick()
+
+        self.assetHistory.recordAssets(updated)
+
         serializedAssets, analysisById = self.getAnalyzedAssets(updated)
         activePath = self.toolHandler.getActivePatrolPath()
         self.droneController.tick(elapsedSeconds=self.generator.lastElapsedSeconds, 
@@ -65,12 +77,77 @@ class TelemetryHandler:
         serializedAssets = []
         analysisById = {}
         
+        # serialize and Set analysis for eash asset
         for asset in assets:
             analysis = returnAnalysis(asset,zones)
             analysisById[asset.assetId] = analysis
             serialized = serializeAssetWithAnalysis(asset,analysis)
             serializedAssets.append(serialized)
         return (serializedAssets,analysisById)
+    
     def getDroneSnapshot(self)->dict:
         return serializeAutonomousDrone(self.droneController.getSnapshot())
+    
+    def getVelocityComponents(self, asset: Asset)-> tuple[float,float]:
+        headingRadians = radians(asset.heading)
+        xVelocity = asset.speed * sin(headingRadians)
+        yVelocity = asset.speed * cos(headingRadians)
+        return xVelocity,yVelocity
+    def predictPath(self,asset:Asset, predictionSeconds:float = 300):
+        history = self.assetHistory.getHistory(assetId=asset.assetId)
+        
+        if history == []:
+            return None
+        
+        # Right positive, left negative
+        totalXVelocity = 0.0
+        # Up positive, down negative
+        totalYVelocity = 0.0
+        for sample in history:
+            xVelocity, yVelocity = self.getVelocityComponents(sample)
+            totalXVelocity += xVelocity
+            totalYVelocity += yVelocity
+
+        
+        averageXVelocity = totalXVelocity / len(history)
+        averageYVelocity = totalYVelocity / len(history)
+        averageSpeed = hypot(averageXVelocity,averageYVelocity)
+        averageHeading = (degrees(atan2(averageXVelocity,averageYVelocity))% 360)
+        predictionDistance = averageSpeed * predictionSeconds
+
+        predictedEndpoint = GEODISC.Direct(asset.latitude,asset.longitude, averageHeading, predictionDistance)
+        return {
+            "assetId":asset.assetId,
+            "averageHeading": averageHeading,
+            "averageSpeed": averageSpeed,
+            "predictionSeconds": predictionSeconds,
+            "coordinates": [
+                [asset.longitude, asset.latitude],
+                [predictedEndpoint["lon2"],predictedEndpoint["lat2"]]
+            ]   
+        }
+    def getTrajectory(self, assetId: str)-> dict | None:
+        selectedAsset = None
+
+        for asset in self.generator.assets:
+            if(asset.assetId == assetId):
+                selectedAsset = asset
+                break
+        if selectedAsset == None:
+            return None
+        
+        history = self.assetHistory.getHistory(assetId)
+        prediction = self.predictPath(selectedAsset)
+
+        return serializeAssetTrajectory(
+            assetId,
+            history,
+            prediction
+        )
+        
+
+
+
+        
+        
       
