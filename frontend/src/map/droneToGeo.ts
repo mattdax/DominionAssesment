@@ -1,5 +1,5 @@
-import type { Point, Feature } from "geojson"
-import type { AutonomousDrone, DroneMode } from "../types/types"
+import type { Point, Feature } from 'geojson'
+import type { AutonomousDrone, DroneMode } from '../types/types'
 
 type DroneProperties = {
 	assetId: string
@@ -11,7 +11,7 @@ type DroneProperties = {
 
 export function droneToGeo(drone: AutonomousDrone): Feature<Point, DroneProperties> {
 	return {
-		type: "Feature",
+		type: 'Feature',
 		properties: {
 			assetId: drone.assetId,
 			heading: drone.heading,
@@ -20,7 +20,7 @@ export function droneToGeo(drone: AutonomousDrone): Feature<Point, DroneProperti
 			targetId: drone.targetId
 		},
 		geometry: {
-			type: "Point",
+			type: 'Point',
 			coordinates: [drone.longitude, drone.latitude]
 		}
 	}

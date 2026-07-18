@@ -1,10 +1,10 @@
-import { socket } from "./socket"
-import type { Asset, PatrolPath, RestrictedZone } from "../types/types"
-import { useEffect } from "react"
-import { useAssetStore } from "../state/useAssetStore"
-import { useAddedToolStore } from "../state/useAddedToolStore"
-import { useDroneStore } from "../state/useDroneStore"
-import type { AddedTool, AutonomousDrone } from "../types/types"
+import { socket } from './socket'
+import type { Asset, PatrolPath, RestrictedZone } from '../types/types'
+import { useEffect } from 'react'
+import { useAssetStore } from '../state/useAssetStore'
+import { useAddedToolStore } from '../state/useAddedToolStore'
+import { useDroneStore } from '../state/useDroneStore'
+import type { AddedTool, AutonomousDrone } from '../types/types'
 
 type AssetsPayload = {
 	assets: Asset[]
@@ -72,31 +72,31 @@ export function useSocket(enabled = true) {
 		const handleDroneState = (payload: DronePayload) => {
 			setDrone(payload.drone)
 		}
-		socket.on("assets.snapshot", handleAssetSnapshot)
-		socket.on("assets.updated", handleAssetUpdate)
+		socket.on('assets.snapshot', handleAssetSnapshot)
+		socket.on('assets.updated', handleAssetUpdate)
 
-		socket.on("tools.snapshot", handleToolSnapshot)
-		socket.on("zone.inserted", handleAddZone)
-		socket.on("zone.deleted", handleRemoveZone)
-		socket.on("path.inserted", handleAddPath)
-		socket.on("path.deleted", handleRemovePath)
-		socket.on("path.activated", handleActivePath)
-		socket.on("autonomous-drone.snapshot", handleDroneState)
-		socket.on("autonomous-drone.updated", handleDroneState)
+		socket.on('tools.snapshot', handleToolSnapshot)
+		socket.on('zone.inserted', handleAddZone)
+		socket.on('zone.deleted', handleRemoveZone)
+		socket.on('path.inserted', handleAddPath)
+		socket.on('path.deleted', handleRemovePath)
+		socket.on('path.activated', handleActivePath)
+		socket.on('autonomous-drone.snapshot', handleDroneState)
+		socket.on('autonomous-drone.updated', handleDroneState)
 		socket.connect()
 
 		return () => {
-			socket.off("assets.snapshot", handleAssetSnapshot)
-			socket.off("assets.updated", handleAssetUpdate)
+			socket.off('assets.snapshot', handleAssetSnapshot)
+			socket.off('assets.updated', handleAssetUpdate)
 
-			socket.off("tools.snapshot", handleToolSnapshot)
-			socket.off("zone.inserted", handleAddZone)
-			socket.off("zone.deleted", handleRemoveZone)
-			socket.off("path.inserted", handleAddPath)
-			socket.off("path.deleted", handleRemovePath)
-			socket.off("path.activated", handleActivePath)
-			socket.off("autonomous-drone.snapshot", handleDroneState)
-			socket.off("autonomous-drone.updated", handleDroneState)
+			socket.off('tools.snapshot', handleToolSnapshot)
+			socket.off('zone.inserted', handleAddZone)
+			socket.off('zone.deleted', handleRemoveZone)
+			socket.off('path.inserted', handleAddPath)
+			socket.off('path.deleted', handleRemovePath)
+			socket.off('path.activated', handleActivePath)
+			socket.off('autonomous-drone.snapshot', handleDroneState)
+			socket.off('autonomous-drone.updated', handleDroneState)
 			socket.disconnect()
 		}
 	}, [

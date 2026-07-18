@@ -1,5 +1,5 @@
-import type { AutonomousDrone } from "../types/types"
-import { create } from "zustand"
+import type { AutonomousDrone } from '../types/types'
+import { create } from 'zustand'
 
 type DroneActions = {
 	setDrone: (drone: AutonomousDrone) => void

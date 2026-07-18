@@ -1,5 +1,5 @@
-import { create } from "zustand"
-import type { AddedTool, PatrolPath, RestrictedZone } from "../types/types"
+import { create } from 'zustand'
+import type { AddedTool, PatrolPath, RestrictedZone } from '../types/types'
 
 function createInitialAddedTool(): AddedTool {
 	return {

@@ -1,6 +1,6 @@
-import { create } from "zustand"
-import { createInitialAssetState } from "./useAssetStoreHelpers"
-import type { Asset } from "../types/types"
+import { create } from 'zustand'
+import { createInitialAssetState } from './useAssetStoreHelpers'
+import type { Asset } from '../types/types'
 
 // Store actions
 type AssetActions = {

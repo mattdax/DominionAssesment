@@ -1,8 +1,8 @@
-import type { AssetHistoryPoint, AssetPrediction, AssetTrajectory } from "../types/types"
-import { isRecord } from "./assetValidator"
+import type { AssetHistoryPoint, AssetPrediction, AssetTrajectory } from '../types/types'
+import { isRecord } from './assetValidator'
 
 function isFiniteNumber(value: unknown): value is number {
-	return typeof value === "number" && Number.isFinite(value)
+	return typeof value === 'number' && Number.isFinite(value)
 }
 
 function isCoordinate(value: unknown): value is [number, number] {
@@ -25,7 +25,7 @@ export function isAssetHistoryPoint(value: unknown): value is AssetHistoryPoint 
 		isFiniteNumber(value.heading) &&
 		isFiniteNumber(value.speed) &&
 		isFiniteNumber(value.sequence) &&
-		typeof value.timestamp === "string"
+		typeof value.timestamp === 'string'
 	)
 }
 
@@ -35,7 +35,7 @@ export function isAssetPrediction(value: unknown): value is AssetPrediction {
 	}
 
 	return (
-		typeof value.assetId === "string" &&
+		typeof value.assetId === 'string' &&
 		isFiniteNumber(value.averageHeading) &&
 		isFiniteNumber(value.averageSpeed) &&
 		isFiniteNumber(value.predictionSeconds) &&
@@ -50,7 +50,7 @@ export function isAssetTrajectory(value: unknown): value is AssetTrajectory {
 	}
 
 	return (
-		typeof value.assetId === "string" &&
+		typeof value.assetId === 'string' &&
 		Array.isArray(value.history) &&
 		value.history.every(isAssetHistoryPoint) &&
 		(value.prediction === null || isAssetPrediction(value.prediction))

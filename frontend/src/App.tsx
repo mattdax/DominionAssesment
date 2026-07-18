@@ -1,10 +1,10 @@
-import { useEffect } from "react"
-import { AssetDetails } from "./map/assetDetails"
-import "./App.css"
-import { useAssetQuery } from "./queries/useAssetQuery"
-import { useAssetStore } from "./state/useAssetStore"
-import { useSocket } from "./realtime/useSocket"
-import { AssetMap } from "./map/map"
+import { useEffect } from 'react'
+import { AssetDetails } from './map/assetDetails'
+import './App.css'
+import { useAssetQuery } from './queries/useAssetQuery'
+import { useAssetStore } from './state/useAssetStore'
+import { useSocket } from './realtime/useSocket'
+import { AssetMap } from './map/map'
 function App() {
 	const { data: assets, isPending, isError, error } = useAssetQuery()
 	const setAssets = useAssetStore((state) => state.setAssets)
@@ -19,7 +19,7 @@ function App() {
 
 	useSocket(true)
 
-	const connectionStatus = isError ? "Offline" : isPending ? "Connecting" : "Online"
+	const connectionStatus = isError ? 'Offline' : isPending ? 'Connecting' : 'Online'
 	return (
 		<div className="app">
 			<header className="app-header">

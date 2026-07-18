@@ -1,6 +1,6 @@
-import { MapLibreMap, type MapLayerMouseEvent, type MapMouseEvent } from "maplibre-gl"
-import { useAssetStore } from "../state/useAssetStore"
-import { ASSET_LAYER_ID } from "./assetLayer"
+import { MapLibreMap, type MapLayerMouseEvent, type MapMouseEvent } from 'maplibre-gl'
+import { useAssetStore } from '../state/useAssetStore'
+import { ASSET_LAYER_ID } from './assetLayer'
 
 export function LoadAssetActions(map: MapLibreMap): () => void {
 	const removeMapSelection = () => {
@@ -23,10 +23,10 @@ export function LoadAssetActions(map: MapLibreMap): () => void {
 			removeMapSelection()
 		}
 	}
-	map.on("click", ASSET_LAYER_ID, handleAssetClick)
-	map.on("click", handleMapClick)
+	map.on('click', ASSET_LAYER_ID, handleAssetClick)
+	map.on('click', handleMapClick)
 	return () => {
-		map.off("click", ASSET_LAYER_ID, handleAssetClick)
-		map.off("click", handleMapClick)
+		map.off('click', ASSET_LAYER_ID, handleAssetClick)
+		map.off('click', handleMapClick)
 	}
 }

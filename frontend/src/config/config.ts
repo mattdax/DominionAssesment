@@ -1,2 +1,2 @@
-export const SERVER_HOST = "localhost"
-export const SERVER_PORT = "4000"
+export const SERVER_HOST = 'localhost'
+export const SERVER_PORT = '4000'

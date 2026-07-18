@@ -1,4 +1,4 @@
-import type { Feature, LineString, Polygon } from "geojson"
+import type { Feature, LineString, Polygon } from 'geojson'
 
 export type Asset = {
 	assetId: string
@@ -15,7 +15,7 @@ export type Asset = {
 export type RestrictedZone = Feature<
 	Polygon,
 	{
-		kind: "restricted-zone"
+		kind: 'restricted-zone'
 		name?: string
 	}
 > & { id: string }
@@ -23,7 +23,7 @@ export type RestrictedZone = Feature<
 export type PatrolPath = Feature<
 	LineString,
 	{
-		kind: "patrol-path"
+		kind: 'patrol-path'
 		name?: string
 	}
 > & { id: string }
@@ -34,7 +34,7 @@ export type AddedTool = {
 	activePatrolPathId: string | null
 }
 
-export type ThreatLevel = "normal" | "warning" | "critical"
+export type ThreatLevel = 'normal' | 'warning' | 'critical'
 
 export type AssetAnalysis = {
 	assetId: string
@@ -46,7 +46,7 @@ export type AssetAnalysis = {
 	threatLevel: ThreatLevel
 }
 
-export type DroneMode = "idle" | "patrol" | "intercept" | "shadow"
+export type DroneMode = 'idle' | 'patrol' | 'intercept' | 'shadow'
 
 export type AutonomousDrone = {
 	assetId: string

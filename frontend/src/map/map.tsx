@@ -1,29 +1,29 @@
-import { useEffect, useRef, useMemo } from "react"
-import { useAssetStore } from "../state/useAssetStore"
-import { useAddedToolStore } from "../state/useAddedToolStore"
-import { assetsToGeo } from "./assetToGeo"
-import maplibregl from "maplibre-gl"
-import "maplibre-gl/dist/maplibre-gl.css"
-import "./map.css"
-import { ASSET_SOURCE_ID, AssetLayer } from "./assetLayer"
-import { LoadAssetActions } from "./assetActions"
-import { drawControls } from "./drawControls"
-import { LoadDrawActions } from "./drawActions"
-import { drawToTool } from "./drawToTool"
-import type { PatrolPath, RestrictedZone } from "../types/types"
-import { socket } from "../realtime/socket"
-import { syncToolsToDraw } from "./toolToDraw"
-import { DroneLayer, DRONE_SOURCE_ID } from "./droneLayer"
+import { useEffect, useRef, useMemo } from 'react'
+import { useAssetStore } from '../state/useAssetStore'
+import { useAddedToolStore } from '../state/useAddedToolStore'
+import { assetsToGeo } from './assetToGeo'
+import maplibregl from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
+import './map.css'
+import { ASSET_SOURCE_ID, AssetLayer } from './assetLayer'
+import { LoadAssetActions } from './assetActions'
+import { drawControls } from './drawControls'
+import { LoadDrawActions } from './drawActions'
+import { drawToTool } from './drawToTool'
+import type { PatrolPath, RestrictedZone } from '../types/types'
+import { socket } from '../realtime/socket'
+import { syncToolsToDraw } from './toolToDraw'
+import { DroneLayer, DRONE_SOURCE_ID } from './droneLayer'
 import {
 	HistoryLayer,
 	PredictionLayer,
 	HISTORY_SOURCE_ID,
 	PREDICTION_SOURCE_ID
-} from "./trajectoryLayers"
-import { useDroneStore } from "../state/useDroneStore"
-import { droneToGeo } from "./droneToGeo"
-import { useAssetTrajectoryQuery } from "../queries/useAssetTrajectoryQuery"
-import { historyToGeo, predictionToGeo } from "./trajectoryToGeo"
+} from './trajectoryLayers'
+import { useDroneStore } from '../state/useDroneStore'
+import { droneToGeo } from './droneToGeo'
+import { useAssetTrajectoryQuery } from '../queries/useAssetTrajectoryQuery'
+import { historyToGeo, predictionToGeo } from './trajectoryToGeo'
 
 export function AssetMap() {
 	// Setup references
@@ -58,13 +58,13 @@ export function AssetMap() {
 		// Define map
 		const map = new maplibregl.Map({
 			container: container.current,
-			style: "https://tiles.openfreemap.org/styles/liberty",
+			style: 'https://tiles.openfreemap.org/styles/liberty',
 			// Ottawa area
 			center: [-75.6972, 45.4215],
 			zoom: 9
 		})
 		// Add Nav Control
-		map.addControl(new maplibregl.NavigationControl(), "top-left")
+		map.addControl(new maplibregl.NavigationControl(), 'top-left')
 
 		// Initial Map Setup with assets and layer
 		const handleMapLoad = () => {
@@ -72,18 +72,18 @@ export function AssetMap() {
 			drawControl = drawControls()
 
 			map.addSource(ASSET_SOURCE_ID, {
-				type: "geojson",
+				type: 'geojson',
 				data: assetsToGeo(currentAssets),
-				promoteId: "assetId"
+				promoteId: 'assetId'
 			})
 
 			map.addSource(HISTORY_SOURCE_ID, {
-				type: "geojson",
+				type: 'geojson',
 				data: historyToGeo(undefined)
 			})
 
 			map.addSource(PREDICTION_SOURCE_ID, {
-				type: "geojson",
+				type: 'geojson',
 				data: predictionToGeo(undefined)
 			})
 
@@ -93,8 +93,8 @@ export function AssetMap() {
 			assetActions = LoadAssetActions(map)
 			const drone = useDroneStore.getState().drone
 			map.addSource(DRONE_SOURCE_ID, {
-				type: "geojson",
-				data: drone ? droneToGeo(drone) : { type: "FeatureCollection", features: [] }
+				type: 'geojson',
+				data: drone ? droneToGeo(drone) : { type: 'FeatureCollection', features: [] }
 			})
 
 			map.addLayer(DroneLayer())
@@ -121,13 +121,13 @@ export function AssetMap() {
 						return
 					}
 					const tool = drawToTool(feature)
-					if (tool.geometry.type == "Polygon") {
+					if (tool.geometry.type == 'Polygon') {
 						addZone(tool as RestrictedZone)
-						socket.emit("zone.insert", { zone: tool as RestrictedZone })
+						socket.emit('zone.insert', { zone: tool as RestrictedZone })
 					} else {
 						addPath(tool as PatrolPath)
-						socket.emit("path.insert", { path: tool as PatrolPath })
-						socket.emit("path.activate", { pathId: tool.id })
+						socket.emit('path.insert', { path: tool as PatrolPath })
+						socket.emit('path.activate', { pathId: tool.id })
 					}
 				},
 				(deletedIds) => {
@@ -138,12 +138,12 @@ export function AssetMap() {
 					for (const id of deletedIds) {
 						if (store.zones.some((zone) => zone.id === id)) {
 							store.removeZone(id)
-							socket.emit("zone.delete", { zoneId: id })
+							socket.emit('zone.delete', { zoneId: id })
 							continue
 						}
 						if (store.patrolPaths.some((path) => path.id === id)) {
 							store.removePath(id)
-							socket.emit("path.delete", { pathId: id })
+							socket.emit('path.delete', { pathId: id })
 						}
 					}
 				}
@@ -151,12 +151,12 @@ export function AssetMap() {
 			syncTools()
 			toolSync = useAddedToolStore.subscribe(syncTools)
 		}
-		map.on("load", handleMapLoad)
+		map.on('load', handleMapLoad)
 		mapRef.current = map
 
 		return () => {
 			assetActions?.()
-			map.off("load", handleMapLoad)
+			map.off('load', handleMapLoad)
 			toolSync?.()
 			drawActions?.()
 			if (drawControl) {
@@ -218,7 +218,7 @@ export function AssetMap() {
 		}
 		const source = map.getSource(DRONE_SOURCE_ID) as maplibregl.GeoJSONSource | undefined
 		if (source) {
-			source.setData(drone ? droneToGeo(drone) : { type: "FeatureCollection", features: [] })
+			source.setData(drone ? droneToGeo(drone) : { type: 'FeatureCollection', features: [] })
 		}
 	}, [drone])
 

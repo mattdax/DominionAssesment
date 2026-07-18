@@ -1,14 +1,14 @@
-import type { FeatureCollection, LineString } from "geojson"
+import type { FeatureCollection, LineString } from 'geojson'
 
-import type { AssetTrajectory } from "../types/types"
+import type { AssetTrajectory } from '../types/types'
 
 type TrajectoryProperties = {
 	assetId: string
-	kind: "history" | "prediction"
+	kind: 'history' | 'prediction'
 }
 function emptyTrajectory(): FeatureCollection<LineString, TrajectoryProperties> {
 	return {
-		type: "FeatureCollection",
+		type: 'FeatureCollection',
 		features: []
 	}
 }
@@ -24,17 +24,17 @@ export function historyToGeo(
 	])
 
 	return {
-		type: "FeatureCollection",
+		type: 'FeatureCollection',
 		features: [
 			{
-				type: "Feature",
-				id: "history:" + trajectory.assetId,
+				type: 'Feature',
+				id: 'history:' + trajectory.assetId,
 				properties: {
 					assetId: trajectory.assetId,
-					kind: "history"
+					kind: 'history'
 				},
 				geometry: {
-					type: "LineString",
+					type: 'LineString',
 					coordinates: coords
 				}
 			}
@@ -50,17 +50,17 @@ export function predictionToGeo(
 	}
 
 	return {
-		type: "FeatureCollection",
+		type: 'FeatureCollection',
 		features: [
 			{
-				type: "Feature",
-				id: "prediction:" + trajectory.assetId,
+				type: 'Feature',
+				id: 'prediction:' + trajectory.assetId,
 				properties: {
 					assetId: trajectory.assetId,
-					kind: "prediction"
+					kind: 'prediction'
 				},
 				geometry: {
-					type: "LineString",
+					type: 'LineString',
 					coordinates: trajectory.prediction.coordinates
 				}
 			}

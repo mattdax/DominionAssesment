@@ -1,5 +1,5 @@
-import type { Point, Feature, FeatureCollection } from "geojson"
-import type { Asset, ThreatLevel } from "../types/types"
+import type { Point, Feature, FeatureCollection } from 'geojson'
+import type { Asset, ThreatLevel } from '../types/types'
 
 type AssetProperties = {
 	assetId: string
@@ -13,7 +13,7 @@ type AssetProperties = {
 
 export function assetToGeo(asset: Asset): Feature<Point, AssetProperties> {
 	return {
-		type: "Feature",
+		type: 'Feature',
 		properties: {
 			assetId: asset.assetId,
 			assetType: asset.assetType,
@@ -24,7 +24,7 @@ export function assetToGeo(asset: Asset): Feature<Point, AssetProperties> {
 			threatLevel: asset.analysis.threatLevel
 		},
 		geometry: {
-			type: "Point",
+			type: 'Point',
 			coordinates: [asset.longitude, asset.latitude]
 		}
 	}
@@ -33,7 +33,7 @@ export function assetToGeo(asset: Asset): Feature<Point, AssetProperties> {
 export function assetsToGeo(assets: Asset[]): FeatureCollection<Point> {
 	const mappedFeatures = assets.map(assetToGeo)
 	const collection: FeatureCollection<Point> = {
-		type: "FeatureCollection",
+		type: 'FeatureCollection',
 		features: mappedFeatures
 	}
 	return collection

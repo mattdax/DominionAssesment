@@ -1,18 +1,18 @@
-import type { GeoJSONStoreFeatures, TerraDraw } from "terra-draw"
-import type { AddedTool, PatrolPath, RestrictedZone } from "../types/types"
+import type { GeoJSONStoreFeatures, TerraDraw } from 'terra-draw'
+import type { AddedTool, PatrolPath, RestrictedZone } from '../types/types'
 
 type Tool = PatrolPath | RestrictedZone
 
 function toolToTerraFeature(tool: Tool): GeoJSONStoreFeatures {
 	const properties: Record<string, string> = {
 		kind: tool.properties.kind,
-		mode: tool.geometry.type === "Polygon" ? "polygon" : "linestring"
+		mode: tool.geometry.type === 'Polygon' ? 'polygon' : 'linestring'
 	}
 	if (tool.properties.name != undefined) {
 		properties.name = tool.properties.name
 	}
 	return {
-		type: "Feature",
+		type: 'Feature',
 		id: tool.id,
 		geometry: tool.geometry,
 		properties
@@ -53,7 +53,7 @@ export function syncToolsToDraw(draw: TerraDraw, state: AddedTool): void {
 	}
 	const currentToolFeatures = draw.getSnapshot().filter((feature) => {
 		return (
-			feature.properties.kind === "restricted-zone" || feature.properties.kind === "patrol-path"
+			feature.properties.kind === 'restricted-zone' || feature.properties.kind === 'patrol-path'
 		)
 	})
 	for (const feature of currentToolFeatures) {

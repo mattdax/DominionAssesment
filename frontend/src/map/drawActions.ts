@@ -1,12 +1,12 @@
-import type { MaplibreTerradrawControl } from "@watergis/maplibre-gl-terradraw"
-import type { GeoJSONStoreFeatures, TerraDrawEventListeners } from "terra-draw"
-import type { LineString, Polygon } from "geojson"
+import type { MaplibreTerradrawControl } from '@watergis/maplibre-gl-terradraw'
+import type { GeoJSONStoreFeatures, TerraDrawEventListeners } from 'terra-draw'
+import type { LineString, Polygon } from 'geojson'
 
 export type FinishedDrawFeature = GeoJSONStoreFeatures<LineString> | GeoJSONStoreFeatures<Polygon>
 
 // FinishedDrawFeature validator. Checks proper geometry
 function isFinishedDrawFeature(value: GeoJSONStoreFeatures): value is FinishedDrawFeature {
-	return value.geometry.type == "Polygon" || value.geometry.type == "LineString"
+	return value.geometry.type == 'Polygon' || value.geometry.type == 'LineString'
 }
 
 export function LoadDrawActions(
@@ -16,10 +16,10 @@ export function LoadDrawActions(
 ): () => void {
 	const drawControl = control.getTerraDrawInstance()
 	if (!drawControl) {
-		throw new Error("LoadDrawActions: Terra Draw instance not found")
+		throw new Error('LoadDrawActions: Terra Draw instance not found')
 	}
 	// Finish a drawing action.
-	const handleFinish: TerraDrawEventListeners["finish"] = (featureId) => {
+	const handleFinish: TerraDrawEventListeners['finish'] = (featureId) => {
 		// Verifies correct finish drawing
 		const feature = drawControl.getSnapshotFeature(featureId)
 		if (!feature || !isFinishedDrawFeature(feature)) {
@@ -29,16 +29,16 @@ export function LoadDrawActions(
 	}
 
 	// Handles deletion
-	const handleChange: TerraDrawEventListeners["change"] = (featureIds, changeType) => {
-		if (changeType == "delete") {
+	const handleChange: TerraDrawEventListeners['change'] = (featureIds, changeType) => {
+		if (changeType == 'delete') {
 			onDeleted(featureIds.map(String))
 		}
 	}
 
-	drawControl.on("finish", handleFinish)
-	drawControl.on("change", handleChange)
+	drawControl.on('finish', handleFinish)
+	drawControl.on('change', handleChange)
 	return () => {
-		drawControl.off("finish", handleFinish)
-		drawControl.off("change", handleChange)
+		drawControl.off('finish', handleFinish)
+		drawControl.off('change', handleChange)
 	}
 }

@@ -1,9 +1,9 @@
-import { useQuery } from "@tanstack/react-query"
-import { fetchAssets } from "../api/fetchAssets"
+import { useQuery } from '@tanstack/react-query'
+import { fetchAssets } from '../api/fetchAssets'
 
 export function useAssetQuery() {
 	const query = useQuery({
-		queryKey: ["assets"],
+		queryKey: ['assets'],
 		queryFn: ({ signal }) => fetchAssets(signal),
 		staleTime: 10_000
 	})

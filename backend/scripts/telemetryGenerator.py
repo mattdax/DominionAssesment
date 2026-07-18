@@ -67,7 +67,13 @@ class TelemetryGenerator():
         return assets
     # Updates assets location
     def _updateAssetPosition(self, asset: Asset, elapsedT: float, timestamp:str)-> Asset:
-        latitude, longitude = updatePosition(asset.latitude, asset.longitude, asset.heading,asset.speed,elapsedT)
+        headingChange = 0
+        if self.rnd.random() < 0.1:
+            headingChange = self.rnd.uniform(-30.0,30.0)
+        if self.rnd.random() < 0.05:
+            headingChange = self.rnd.uniform(-90.0,90.0)
+        updatedHeading = asset.heading + headingChange % 360
+        latitude, longitude = updatePosition(asset.latitude, asset.longitude, updatedHeading,asset.speed,elapsedT)
         return replace(asset, latitude=latitude, longitude=longitude, sequence=asset.sequence+1, timestamp=timestamp)
     
     # 
