@@ -17,21 +17,6 @@ class Asset:
     timestamp: str
 
 
-
-
-"""
-
-Generator inputs - 
-    Seed
-    Number of assets
-    Predetermined trajectories for polygon interaction
-    Update frequency
-    Pause Reset
-
-"""
-
-
-
 class TelemetryGenerator():
    
    # Initializer for Telemetry Generator
@@ -47,6 +32,8 @@ class TelemetryGenerator():
         self.assets = self._createAssets(assetCount)
         
         self.updatesPerSecond = updatesPerSecond
+        
+        # Converts the update rate into the expected duration between ticks.
         self.updateIntervalSeconds = 1.0 / updatesPerSecond
         self.maximumElapsedSeconds = self.updateIntervalSeconds * 2
         self.lastElapsedSeconds = 0
@@ -68,6 +55,7 @@ class TelemetryGenerator():
             
             longitude = longitude,
             latitude = latitude,
+            # Sequence numbers allow clients to reject info that arrives out of order.
             sequence = 0,
             heading = generateHeading(self.rnd),
             speed = generateSpeed(self.rnd),
@@ -86,17 +74,19 @@ class TelemetryGenerator():
     def tick(self)->list[Asset]:
         currentTick = monotonic()
         elapsedT = currentTick - self.lastTick
-        elapsedT = max(0.0, elapsedT)
+        #elapsedT = max(0.0, elapsedT)
+        
+        # Limit amount of possible change
         elapsedT = min(elapsedT, self.maximumElapsedSeconds)
         self.lastTick = currentTick
         self.lastElapsedSeconds = elapsedT
         timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="milliseconds")
         updatedAssets = []
+        # Update positioning for each asset
         for asset in self.assets:
-             
-            updatedAssets.append(
-                self._updateAssetPosition(asset,elapsedT=elapsedT, timestamp=timestamp)
-            )
+             updatedAssets.append(self._updateAssetPosition(asset,elapsedT=elapsedT, timestamp=timestamp))
+        
+        # Replace the current snapshot only after every asset has been updated.
         self.assets = updatedAssets
         return updatedAssets
     

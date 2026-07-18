@@ -48,7 +48,9 @@ def projectedPath(asset: Asset, assetPoint: Point)->LineString:
 
 
 def returnAnalysis(asset: Asset, zones: list[dict[str,Any]])->AssetAnalysis:
+    # Shapely treats coordinates as planar units, have to convert the asset into metric units.
     x,y = degreesToMeters(asset.longitude,asset.latitude)
+    
     assetPoint = Point(x,y)
     nearestZoneId = None
     nearestDistance = None
@@ -58,6 +60,7 @@ def returnAnalysis(asset: Asset, zones: list[dict[str,Any]])->AssetAnalysis:
     threatLevel = "normal"
 
     projected = (projectedPath(asset,assetPoint))
+    # Track the physically nearest zone and earliest predicted entry separately.
     for zone in zones:
         polygon = zoneToPolygon(zone)
         zoneId = str(zone["id"])
@@ -65,20 +68,22 @@ def returnAnalysis(asset: Asset, zones: list[dict[str,Any]])->AssetAnalysis:
         if nearestDistance == None or distance < nearestDistance:
             nearestDistance = distance
             nearestZoneId = zoneId
-        
+        # Check if point is inside the polygon
         if polygon.covers(assetPoint):
             if insideZoneId is None:
                 insideZoneId = zoneId
             continue
+        # Nearest intersection along the projected vector is the entry point.
         projectPolyIntersection = projected.intersection(polygon.boundary)
         if not projectPolyIntersection.is_empty:
             entryDistance = assetPoint.distance(projectPolyIntersection)
             zoneTte = entryDistance / asset.speed
+            # Handle path intersecting with multiple zones
             if earliestTte is None or zoneTte < earliestTte:
                 earliestTte = zoneTte
                 entryZoneId = zoneId
     isInsideZone = insideZoneId is not None
-
+    # If we are inside a zone already set properties correctly
     if isInsideZone:
         entryZoneId = insideZoneId
         earliestTte = 0.0

@@ -17,6 +17,7 @@ class AssetHistory:
             if history and history[-1].sequence >= asset.sequence:
                 continue
             history.append(asset)
+    # Returns 5 minute history of assetId
     def getHistory(self,assetId:str)-> list[Asset]:
         history = self.historyByAssetId.get(assetId)
         if not history:

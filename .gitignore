@@ -2,3 +2,4 @@ Software Engineer Technical Assessment  (1).pdf
 *.pyc
 /day1
 /backend/node_modules
+/backend/.env

@@ -44,9 +44,14 @@ class AutonomousDroneController:
     def getSnapshot(self)->AutonomousDrone:
         return self.drone
     def tick(self,elapsedSeconds: float, patrolPath: dict | None, assets: list[Asset], analysisByAssetId: dict[str, AssetAnalysis])-> AutonomousDrone:
-
+        # Decision priority:
+        # 1. Remain idle without an active path
+        # 2. Initialize a newly activated path
+        # 3. Intercept or shadow a breached asset
+        # 4. Otherwise continue patrolling
+        
         time = datetime.now(timezone.utc).isoformat(timespec="milliseconds")
-
+        # Without an active patrol path, keep the drone stationary
         if(patrolPath == None):
             
             self.currentPathIndex = 0
@@ -60,6 +65,8 @@ class AutonomousDroneController:
         if pathId != self.currentPathId:
             self.activatePath(pathId=pathId,coordinates=coordinates)
             return self.drone
+        
+        # Restricted-zone targets take priority over normal patrol movement.
         target = self.selectTarget(assets,analysisByAssetId)
         if target is not None:
             isShadowing = self.drone.mode == "shadow" and self.drone.targetId == target.assetId
