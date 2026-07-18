@@ -1,6 +1,8 @@
 from dataclasses import dataclass, replace
 from typing import Literal
 from datetime import datetime, timezone
+from .telemetryGenerator import Asset
+from .timeToEntry import AssetAnalysis
 from geographiclib.geodesic import Geodesic
 GEODEISC = Geodesic.WGS84
 
@@ -20,7 +22,7 @@ class AutonomousDrone:
     targetId: str | None 
 
 class AutonomousDroneController:
-    def __init__(self, startLong:float, startLat: float, patrolSpeed: float, tolerance: float):
+    def __init__(self, startLong:float, startLat: float, patrolSpeed: float, tolerance: float, interceptSpeed: float, shadowDistance: float):
         time = datetime.now(timezone.utc).isoformat(timespec="milliseconds")
         
         self.drone = AutonomousDrone(assetId="auto:1",
@@ -37,9 +39,11 @@ class AutonomousDroneController:
         self.patrolSpeed =patrolSpeed 
         self.currentPathId: str | None = None
         self.tolerance = tolerance
+        self.interceptSpeed = interceptSpeed
+        self.shadowDistance = shadowDistance
     def getSnapshot(self)->AutonomousDrone:
         return self.drone
-    def tick(self,elapsedSeconds: float, patrolPath: dict | None, assets: list, analysisByAssetId: dict)-> AutonomousDrone:
+    def tick(self,elapsedSeconds: float, patrolPath: dict | None, assets: list[Asset], analysisByAssetId: dict[str, AssetAnalysis])-> AutonomousDrone:
 
         time = datetime.now(timezone.utc).isoformat(timespec="milliseconds")
 
@@ -56,35 +60,26 @@ class AutonomousDroneController:
         if pathId != self.currentPathId:
             self.activatePath(pathId=pathId,coordinates=coordinates)
             return self.drone
+        target = self.selectTarget(assets,analysisByAssetId)
+        if target is not None:
+            isShadowing = self.drone.mode == "shadow" and self.drone.targetId == target.assetId
+            if isShadowing:
+                return self.shadowTarget(target,elapsedSeconds)
+            return self.interceptTarget(target, elapsedSeconds)
+            #return self.interceptTarget(target,elapsedSeconds)
         
-        targetLongitude, targetLatitude = (coordinates[self.currentPathIndex])
+        targetLongitude, targetLatitude = coordinates[self.currentPathIndex]
         
-        currentLongitude = self.drone.longitude
-        currentLatitude = self.drone.latitude
-        # calculates the path from the current drone location to the target waypoint.
-        route = GEODEISC.Inverse(currentLatitude,currentLongitude,targetLatitude,targetLongitude)
-        distanceToWaypoint = route["s12"]
-        headingToWaypoint = route["azi1"] % 360
-
-        travelDistance = (self.patrolSpeed * elapsedSeconds)
-
-        waypointWasReached = (distanceToWaypoint<=self.tolerance or travelDistance >= distanceToWaypoint)
-        if(waypointWasReached):
+        newLongitude, newLatitude,heading,_,waypointWasReached = (self.calculateMovement(targetLongitude,targetLatitude,self.patrolSpeed,elapsedSeconds,stoppingDistance=0.0))
+        
+        if waypointWasReached:
             newLongitude = targetLongitude
             newLatitude = targetLatitude
-
             self.currentPathIndex = (self.currentPathIndex + 1) % len(coordinates)
-
-            nextLongitude,nextLatitude = (coordinates[self.currentPathIndex])
-
-            nextRoute = GEODEISC.Inverse(newLatitude,newLongitude,nextLatitude,nextLongitude)
-
-            headingToWaypoint = (nextRoute["azi1"] % 360)
-        else:
-            destination = GEODEISC.Direct(currentLatitude,currentLongitude,headingToWaypoint,travelDistance)
-            newLatitude = destination["lat2"]
-            newLongitude = destination["lon2"]
-        self.drone = replace(self.drone,longitude=newLongitude, latitude=newLatitude,heading=headingToWaypoint,
+            nextLongitude,nextLatitude = coordinates[self.currentPathIndex]
+            nextRoute = GEODEISC.Inverse(newLatitude,newLongitude,nextLatitude,nextLongitude    )
+            heading = nextRoute["azi1"] % 360
+        self.drone = replace(self.drone,longitude=newLongitude, latitude=newLatitude,heading=heading,
                              speed=self.patrolSpeed, mode="patrol",targetId=None,sequence=self.drone.sequence+1,timestamp=time)
         return self.drone
         
@@ -117,11 +112,96 @@ class AutonomousDroneController:
         self.currentPathIndex = 1
 
         self.drone = replace(self.drone,longitude=initialLong, latitude=initialLat, heading=heading, 
-                             speed=self.patrolSpeed, mode="patrol",targetId=None,sequence=self.drone.sequence+1,timestamp=timestamp)
+                             speed=self.patrolSpeed, mode="patrol",targetId=None,
+                             sequence=self.drone.sequence+1,timestamp=timestamp)
 
+
+    def selectTarget(self,assets: list[Asset],analysisById: dict[str,AssetAnalysis])-> Asset | None:
         
-        return
+        if self.drone.targetId:
+            # Check if we are already chasing an asset, if so continue
+            for asset in assets:
+                if asset.assetId != self.drone.targetId:
+                    continue    
+                    
+                analysis = analysisById.get(asset.assetId)
+                if(analysis is not None and analysis.isInsideZone):
+                    return asset
+                
+                
+        # Check for new asset to follow
+        nearestDistance = float('inf')
+        nearestAsset = None
+        for asset in assets:
+            analysis = analysisById.get(asset.assetId)
+            
+            if(analysis is None or not analysis.isInsideZone):
+                continue
+            route = GEODEISC.Inverse(self.drone.latitude,self.drone.longitude, asset.latitude, asset.longitude)
+            distance = route["s12"]
 
+            if distance < nearestDistance:
+                nearestDistance = distance
+                nearestAsset = asset
+        return nearestAsset
+    def calculateMovement(self, targetLongitude:float, targetLatitude: float, speed:float,
+                          elapsedSeconds: float, stoppingDistance: float = 0)->tuple[float,float,float,float,bool]:
+        route = GEODEISC.Inverse(
+            self.drone.latitude,
+            self.drone.longitude,
+            targetLatitude,
+            targetLongitude
+            )
+
+        actualDistance = route["s12"]
+        distanceToTarget = max(0.0, actualDistance - stoppingDistance)
+        
+        heading = route["azi1"] % 360
+        # If we are already within shadow distance of target
+        if distanceToTarget <= self.tolerance:
+            return (self.drone.longitude,self.drone.latitude,heading,actualDistance, True)
+        
+        currentMovement = min(speed * elapsedSeconds,distanceToTarget)
+
+        destination = GEODEISC.Direct(self.drone.latitude,self.drone.longitude,heading,currentMovement)
+
+        newLat = destination["lat2"]
+        newLong = destination["lon2"]
+        remainingDistance = distanceToTarget - currentMovement
+        reachedStoppingDistance = (remainingDistance <= self.tolerance)
+        
+        return (newLong,newLat,heading,actualDistance,reachedStoppingDistance)
+    def interceptTarget(self, target:Asset,elapsedSeconds:float)->AutonomousDrone:
+        newLongitude, newLatitude,heading,_,waypointWasReached = (self.calculateMovement(target.longitude,target.latitude,self.interceptSpeed,elapsedSeconds,stoppingDistance=self.shadowDistance))
+        mode: DroneMode = "shadow" if waypointWasReached else "intercept"
+        self.drone = replace(self.drone, longitude=newLongitude,latitude=newLatitude,heading=heading,
+                             speed=self.interceptSpeed,mode=mode,targetId=target.assetId,
+                             sequence = self.drone.sequence +1, timestamp=datetime.now(timezone.utc).isoformat(timespec="milliseconds"))
+        return self.drone
+    def shadowTarget(self,target:Asset,elapsedSeconds:float)->AutonomousDrone:
+        behindHeading = (target.heading +180) % 360
+        
+        shadowPoint = GEODEISC.Direct(target.latitude,target.longitude,behindHeading,self.shadowDistance)
+
+        shadowLatitude = shadowPoint["lat2"]
+        shadowLongitude = shadowPoint["lon2"]
+
+        newLongitude, newLatitude,heading,_, reached = (
+            self.calculateMovement(shadowLongitude,shadowLatitude,self.interceptSpeed,
+                                   elapsedSeconds,stoppingDistance=0.0 ))
+        speed = self.interceptSpeed
+        if reached:
+            newLongitude = shadowLongitude
+            newLatitude = shadowLatitude
+            heading = target.heading
+            speed = target.speed
+        self.drone = replace(self.drone,longitude=newLongitude,latitude=newLatitude,heading=heading,
+                            speed=speed,mode="shadow", targetId = target.assetId, sequence=self.drone.sequence+1,
+                            timestamp=datetime.now(timezone.utc).isoformat(timespec="milliseconds"))
+        return self.drone
+            
+        
+        
 
 
 

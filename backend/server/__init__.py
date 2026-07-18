@@ -28,7 +28,8 @@ def create_server()->Flask:
 
     # Setup Telemetry generator+handler, Tool handler, and Drone controller
     droneController = AutonomousDroneController(startLong=app.config["AUTONOMOUS_DRONE_START_LONGITUDE"], startLat=app.config["AUTONOMOUS_DRONE_START_LATITUDE"],
-                                                patrolSpeed=app.config["AUTONOMOUS_DRONE_PATROL_SPEED"],tolerance=app.config["AUTONOMOUS_DRONE_WAYPOINT_TOLERANCE"])
+                                                patrolSpeed=app.config["AUTONOMOUS_DRONE_PATROL_SPEED"],tolerance=app.config["AUTONOMOUS_DRONE_WAYPOINT_TOLERANCE"], 
+                                                interceptSpeed=app.config["AUTONOMOUS_DRONE_INTERCEPT_SPEED"], shadowDistance=app.config["AUTONOMOUS_DRONE_SHADOW_DISTANCE"])
     app.extensions["drone_controller"] = droneController
     toolHandler = ToolHandler()
     app.extensions["tool_handler"] = toolHandler
