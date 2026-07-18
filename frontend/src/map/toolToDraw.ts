@@ -19,6 +19,7 @@ function toolToTerraFeature(tool: Tool): GeoJSONStoreFeatures {
 	}
 }
 
+// Sync tools to TerraDraw instance
 export function syncToolsToDraw(draw: TerraDraw, state: AddedTool): void {
 	const tools: Tool[] = [...state.zones, ...state.patrolPaths]
 	// Get all tool ids

@@ -30,6 +30,7 @@ export function AssetMap() {
 	const container = useRef<HTMLDivElement | null>(null)
 	const mapRef = useRef<maplibregl.Map | null>(null)
 	const previousSelectedId = useRef<string | null>(null)
+
 	const isApplyingToolSync = useRef(false)
 
 	// Load Store values & functions
@@ -74,6 +75,7 @@ export function AssetMap() {
 			map.addSource(ASSET_SOURCE_ID, {
 				type: 'geojson',
 				data: assetsToGeo(currentAssets),
+				// Promote assetId to a MapLibre feature ID so feature-state selection survives telemetry changes.
 				promoteId: 'assetId'
 			})
 
@@ -101,7 +103,7 @@ export function AssetMap() {
 
 			map.addControl(drawControl)
 			drawControl.activate()
-
+			// Terra Draw maintains its own geometry store. Reconcile it from Zustand
 			const syncTools = () => {
 				isApplyingToolSync.current = true
 				try {

@@ -41,7 +41,7 @@ class TelemetryGenerator():
         self.lastTick = monotonic()
     
     # Create assets
-    # Input: Assetcount, TODO predeterminedPaths 
+    # Input: Assetcount
     def _createAssets(self, assetCount)-> List[Asset]:
         assets = []
         for i in range(assetCount):
@@ -72,9 +72,9 @@ class TelemetryGenerator():
             headingChange = self.rnd.uniform(-30.0,30.0)
         if self.rnd.random() < 0.05:
             headingChange = self.rnd.uniform(-90.0,90.0)
-        updatedHeading = asset.heading + headingChange % 360
+        updatedHeading = (asset.heading + headingChange) % 360
         latitude, longitude = updatePosition(asset.latitude, asset.longitude, updatedHeading,asset.speed,elapsedT)
-        return replace(asset, latitude=latitude, longitude=longitude, sequence=asset.sequence+1, timestamp=timestamp)
+        return replace(asset, latitude=latitude, longitude=longitude, sequence=asset.sequence+1,heading=updatedHeading, timestamp=timestamp)
     
     # 
     def tick(self)->list[Asset]:

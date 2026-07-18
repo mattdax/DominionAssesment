@@ -26,6 +26,7 @@ export const useAssetStore = create<AssetStore>()((set) => ({
 			const byIds = { ...state.assetsById }
 			for (const asset of assets) {
 				const currentAsset = byIds[asset.assetId]
+				// Only accept telemetry with a newer asset sequence number.
 				if (!currentAsset || asset.sequence > currentAsset.sequence) {
 					byIds[asset.assetId] = asset
 				}

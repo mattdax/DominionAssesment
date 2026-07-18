@@ -15,7 +15,6 @@ def serializeAssets(assets: list[Asset])-> list[dict]:
         )
     return serializedAssets
 # Adds analysis to serialized asset.
-# TODO Combine serializeAsset and serializeAssetWithAnalysis function
 def serializeAssetWithAnalysis(asset:Asset,analysis:AssetAnalysis):
     serializedAsset = serializeAsset(asset)
     serializedAsset["analysis"] = asdict(analysis)
